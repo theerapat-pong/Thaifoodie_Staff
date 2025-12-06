@@ -252,12 +252,17 @@ const CheckOutView = {
     },
 
     showSuccess(data) {
-        // Make the parent card visible
+        // Make the parent card visible with fade-in animation
         const mainCard = document.getElementById('main-card-container');
-        if (mainCard) mainCard.style.display = 'block';
+        if (mainCard) {
+            mainCard.style.display = 'block';
+            mainCard.classList.add('fade-in');
+        }
         
         this.hideProcessStatus();
-        document.getElementById('state-success').style.display = 'block';
+        const successState = document.getElementById('state-success');
+        successState.style.display = 'block';
+        successState.classList.add('fade-in');
         
         document.getElementById('checkout-time').textContent = data.checkOutTime;
         
@@ -298,31 +303,46 @@ const CheckOutView = {
     },
 
     showNotCheckedIn() {
-        // Make the parent card visible
+        // Make the parent card visible with fade-in animation
         const mainCard = document.getElementById('main-card-container');
-        if (mainCard) mainCard.style.display = 'block';
+        if (mainCard) {
+            mainCard.style.display = 'block';
+            mainCard.classList.add('fade-in');
+        }
         
         this.hideProcessStatus();
-        document.getElementById('state-not-checked').style.display = 'block';
+        const notCheckedState = document.getElementById('state-not-checked');
+        notCheckedState.style.display = 'block';
+        notCheckedState.classList.add('fade-in');
     },
 
     showAlreadyCheckedOut(message) {
-        // Make the parent card visible
+        // Make the parent card visible with fade-in animation
         const mainCard = document.getElementById('main-card-container');
-        if (mainCard) mainCard.style.display = 'block';
+        if (mainCard) {
+            mainCard.style.display = 'block';
+            mainCard.classList.add('fade-in');
+        }
         
         this.hideProcessStatus();
-        document.getElementById('state-already').style.display = 'block';
+        const alreadyState = document.getElementById('state-already');
+        alreadyState.style.display = 'block';
+        alreadyState.classList.add('fade-in');
         document.getElementById('already-message').textContent = message || 'คุณได้ลงเวลาออกงานแล้ววันนี้';
     },
 
     showError(message) {
-        // Make the parent card visible
+        // Make the parent card visible with fade-in animation
         const mainCard = document.getElementById('main-card-container');
-        if (mainCard) mainCard.style.display = 'block';
+        if (mainCard) {
+            mainCard.style.display = 'block';
+            mainCard.classList.add('fade-in');
+        }
         
         this.hideProcessStatus();
-        document.getElementById('state-error').style.display = 'block';
+        const errorState = document.getElementById('state-error');
+        errorState.style.display = 'block';
+        errorState.classList.add('fade-in');
         document.getElementById('error-message').textContent = message || 'ไม่สามารถลงเวลาได้';
     },
 

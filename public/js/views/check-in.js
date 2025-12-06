@@ -238,12 +238,17 @@ const CheckInView = {
     },
 
     showSuccess(data) {
-        // Make the parent card visible
+        // Make the parent card visible with fade-in animation
         const mainCard = document.getElementById('main-card-container');
-        if (mainCard) mainCard.style.display = 'block';
+        if (mainCard) {
+            mainCard.style.display = 'block';
+            mainCard.classList.add('fade-in');
+        }
         
         this.hideProcessStatus();
-        document.getElementById('state-success').style.display = 'block';
+        const successState = document.getElementById('state-success');
+        successState.style.display = 'block';
+        successState.classList.add('fade-in');
         
         // Handle pending check-in (Yellow Zone)
         const isPending = data.location && data.location.isPending;
@@ -295,22 +300,32 @@ const CheckInView = {
 
 
     showAlreadyCheckedIn(message) {
-        // Make the parent card visible
+        // Make the parent card visible with fade-in animation
         const mainCard = document.getElementById('main-card-container');
-        if (mainCard) mainCard.style.display = 'block';
+        if (mainCard) {
+            mainCard.style.display = 'block';
+            mainCard.classList.add('fade-in');
+        }
         
         this.hideProcessStatus();
-        document.getElementById('state-already').style.display = 'block';
+        const alreadyState = document.getElementById('state-already');
+        alreadyState.style.display = 'block';
+        alreadyState.classList.add('fade-in');
         document.getElementById('already-message').textContent = message || 'คุณได้ลงเวลาเข้างานแล้ววันนี้';
     },
 
     showError(message) {
-        // Make the parent card visible
+        // Make the parent card visible with fade-in animation
         const mainCard = document.getElementById('main-card-container');
-        if (mainCard) mainCard.style.display = 'block';
+        if (mainCard) {
+            mainCard.style.display = 'block';
+            mainCard.classList.add('fade-in');
+        }
         
         this.hideProcessStatus();
-        document.getElementById('state-error').style.display = 'block';
+        const errorState = document.getElementById('state-error');
+        errorState.style.display = 'block';
+        errorState.classList.add('fade-in');
         document.getElementById('error-icon').textContent = message && (message.includes('นอกพื้นที่') || message.includes('ไกล')) ? '🚫' : '⚠️';
         document.getElementById('error-title').textContent = message && (message.includes('นอกพื้นที่') || message.includes('ไกล')) ? 'อยู่นอกพื้นที่' : 'เกิดข้อผิดพลาด';
         document.getElementById('error-message').textContent = message || 'ไม่สามารถลงเวลาได้';

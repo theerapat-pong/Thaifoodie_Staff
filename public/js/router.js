@@ -144,7 +144,9 @@ class Router {
             this.container.innerHTML = '<div class="view-loading"><div class="loading-spinner"></div></div>';
             
             const html = await view.render(params);
-            this.container.innerHTML = html;
+            
+            // Wrap rendered view in animation container
+            this.container.innerHTML = `<div class="view-enter">${html}</div>`;
 
             // Initialize view if it has init method
             if (typeof view.init === 'function') {

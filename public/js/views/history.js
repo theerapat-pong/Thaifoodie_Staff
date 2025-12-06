@@ -14,47 +14,69 @@ const HistoryView = {
                     <div class="header-subtitle">ประวัติการทำงานและการเบิกเงิน</div>
                 </div>
                 
-                <!-- Tabs -->
-                <div class="tab-container">
-                    <button class="tab-btn active" onclick="HistoryView.switchTab('attendance')">เข้า-ออกงาน</button>
-                    <button class="tab-btn" onclick="HistoryView.switchTab('leave')">ลางาน</button>
-                    <button class="tab-btn" onclick="HistoryView.switchTab('advance')">เบิกเงิน</button>
-                </div>
-                
-                <!-- Attendance Tab -->
-                <div id="tab-attendance" class="tab-content active">
-                    <div id="attendance-list">
-                        <div class="empty-state" id="attendance-empty">
-                            <div class="empty-icon">📭</div>
-                            <div class="empty-title">ยังไม่มีประวัติการเข้างาน</div>
+                <!-- Hide-First-Show-Later: Main content hidden initially -->
+                <div id="history-content" style="display: none;">
+                    <!-- Tabs -->
+                    <div class="tab-container">
+                        <button class="tab-btn active" onclick="HistoryView.switchTab('attendance')">เข้า-ออกงาน</button>
+                        <button class="tab-btn" onclick="HistoryView.switchTab('leave')">ลางาน</button>
+                        <button class="tab-btn" onclick="HistoryView.switchTab('advance')">เบิกเงิน</button>
+                    </div>
+                    
+                    <!-- Attendance Tab -->
+                    <div id="tab-attendance" class="tab-content active">
+                        <div id="attendance-list">
+                            <div class="empty-state" id="attendance-empty">
+                                <div class="empty-icon">📭</div>
+                                <div class="empty-title">ยังไม่มีประวัติการเข้างาน</div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Leave Tab -->
-                <div id="tab-leave" class="tab-content">
-                    <div id="leave-list">
-                        <div class="empty-state" id="leave-empty">
-                            <div class="empty-icon">📭</div>
-                            <div class="empty-title">ยังไม่มีประวัติการลา</div>
+                    
+                    <!-- Leave Tab -->
+                    <div id="tab-leave" class="tab-content">
+                        <div id="leave-list">
+                            <div class="empty-state" id="leave-empty">
+                                <div class="empty-icon">📭</div>
+                                <div class="empty-title">ยังไม่มีประวัติการลา</div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Advance Tab -->
-                <div id="tab-advance" class="tab-content">
-                    <div id="advance-list">
-                        <div class="empty-state" id="advance-empty">
-                            <div class="empty-icon">📭</div>
-                            <div class="empty-title">ยังไม่มีประวัติการเบิก</div>
+                    
+                    <!-- Advance Tab -->
+                    <div id="tab-advance" class="tab-content">
+                        <div id="advance-list">
+                            <div class="empty-state" id="advance-empty">
+                                <div class="empty-icon">📭</div>
+                                <div class="empty-title">ยังไม่มีประวัติการเบิก</div>
+                            </div>
                         </div>
                     </div>
+                    
+                    <!-- Back to Menu -->
+                    <button class="btn btn-outline btn-block mt-2" onclick="router.navigate('home')">
+                        ← กลับหน้าหลัก
+                    </button>
                 </div>
                 
-                <!-- Back to Menu -->
-                <button class="btn btn-outline btn-block mt-2" onclick="router.navigate('home')">
-                    ← กลับหน้าหลัก
-                </button>
+                <!-- Loading State -->
+                <div id="history-loading" class="loading-state" style="display: flex;">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">กำลังโหลดประวัติ...</div>
+                </div>
+                
+                <!-- Error State -->
+                <div id="history-error" class="error-state" style="display: none;">
+                    <div class="error-icon">⚠️</div>
+                    <div class="error-title">เกิดข้อผิดพลาด</div>
+                    <div class="error-message" id="history-error-message">ไม่สามารถโหลดประวัติได้</div>
+                    <button class="btn btn-primary" onclick="HistoryView.retry()">
+                        ลองใหม่
+                    </button>
+                    <button class="btn btn-outline mt-1" onclick="router.navigate('home')">
+                        กลับหน้าหลัก
+                    </button>
+                </div>
             </div>
         `;
     },
@@ -64,7 +86,62 @@ const HistoryView = {
             await this.loadAttendanceHistory();
         } catch (error) {
             console.error('History init error:', error);
-            showError('ไม่สามารถโหลดข้อมูลได้');
+            this.showError('ไม่สามารถโหลดข้อมูลได้');
+        }
+    },
+    
+    showContent() {
+        const loadingEl = document.getElementById('history-loading');
+        const errorEl = document.getElementById('history-error');
+        const contentEl = document.getElementById('history-content');
+        
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (errorEl) errorEl.style.display = 'none';
+        if (contentEl) {
+            contentEl.style.display = 'block';
+            contentEl.classList.add('fade-in');
+        }
+    },
+    
+    hideLoading() {
+        const loadingEl = document.getElementById('history-loading');
+        if (loadingEl) loadingEl.style.display = 'none';
+    },
+    
+    showError(message) {
+        const loadingEl = document.getElementById('history-loading');
+        const contentEl = document.getElementById('history-content');
+        const errorEl = document.getElementById('history-error');
+        const errorMessageEl = document.getElementById('history-error-message');
+        
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (contentEl) contentEl.style.display = 'none';
+        if (errorEl) {
+            errorEl.style.display = 'flex';
+            errorEl.classList.add('fade-in');
+        }
+        if (errorMessageEl) errorMessageEl.textContent = message;
+    },
+    
+    retry() {
+        // Hide error, show loading
+        const errorEl = document.getElementById('history-error');
+        const loadingEl = document.getElementById('history-loading');
+        
+        if (errorEl) errorEl.style.display = 'none';
+        if (loadingEl) loadingEl.style.display = 'flex';
+        
+        // Reload current tab data
+        const activeTab = document.querySelector('.tab-btn.active');
+        if (activeTab) {
+            const tabText = activeTab.textContent.trim();
+            if (tabText.includes('เข้า-ออก')) {
+                this.loadAttendanceHistory();
+            } else if (tabText.includes('ลา')) {
+                this.loadLeaveHistory();
+            } else if (tabText.includes('เบิก')) {
+                this.loadAdvanceHistory();
+            }
         }
     },
 
@@ -97,8 +174,6 @@ const HistoryView = {
 
     async loadAttendanceHistory() {
         try {
-            showLoading('กำลังโหลดประวัติ...');
-            
             const response = await AttendanceAPI.getHistory(30);
             
             const container = document.getElementById('attendance-list');
@@ -149,18 +224,18 @@ const HistoryView = {
                 emptyState.style.display = 'block';
             }
             
-            hideLoading();
+            this.hideLoading();
+            this.showContent();
             
         } catch (error) {
-            hideLoading();
+            this.hideLoading();
             console.error('Load attendance history error:', error);
+            this.showError(error?.message || 'ไม่สามารถโหลดประวัติได้');
         }
     },
 
     async loadLeaveHistory() {
         try {
-            showLoading('กำลังโหลดประวัติ...');
-            
             const response = await LeaveAPI.getHistory();
             
             const container = document.getElementById('leave-list');
@@ -194,18 +269,23 @@ const HistoryView = {
                 emptyState.style.display = 'block';
             }
             
-            hideLoading();
-            
         } catch (error) {
-            hideLoading();
             console.error('Load leave history error:', error);
+            // Show error in empty state instead of global error
+            const emptyState = document.getElementById('leave-empty');
+            if (emptyState) {
+                emptyState.innerHTML = `
+                    <div class="empty-icon">⚠️</div>
+                    <div class="empty-title">เกิดข้อผิดพลาด</div>
+                    <button class="btn btn-sm btn-primary" onclick="HistoryView.loadLeaveHistory()">ลองใหม่</button>
+                `;
+                emptyState.style.display = 'block';
+            }
         }
     },
 
     async loadAdvanceHistory() {
         try {
-            showLoading('กำลังโหลดประวัติ...');
-            
             const response = await AdvanceAPI.getHistory();
             
             const container = document.getElementById('advance-list');
@@ -236,11 +316,18 @@ const HistoryView = {
                 emptyState.style.display = 'block';
             }
             
-            hideLoading();
-            
         } catch (error) {
-            hideLoading();
             console.error('Load advance history error:', error);
+            // Show error in empty state instead of global error
+            const emptyState = document.getElementById('advance-empty');
+            if (emptyState) {
+                emptyState.innerHTML = `
+                    <div class="empty-icon">⚠️</div>
+                    <div class="empty-title">เกิดข้อผิดพลาด</div>
+                    <button class="btn btn-sm btn-primary" onclick="HistoryView.loadAdvanceHistory()">ลองใหม่</button>
+                `;
+                emptyState.style.display = 'block';
+            }
         }
     },
 
