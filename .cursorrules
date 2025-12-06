@@ -1,0 +1,32 @@
+# Project: LINE LIFF Staff Management App
+# Tech Stack: Vanilla JS (Frontend), Node.js (Backend), Prisma (ORM), Neon (DB), Vercel (Deploy)
+
+# 1. CODING STYLE & PHILOSOPHY
+- Write clean, modern JavaScript (ES6+).
+- Use "Minimalist Smart Loading" UI pattern (Single icon center).
+- comments should be clear and concise (English for code logic, Thai is okay for specific business logic explanations).
+- prefer `const` over `let`.
+- Always check for null/undefined before accessing object properties.
+
+# 2. UI/UX RULES (STRICT)
+- **Unified UI:** All entry points (Home, Check-in, Check-out) must look identical during loading.
+- **"Hide First, Show Later":** - Main containers (`.quick-action-card`, `.attendance-process-status`) MUST have `style="display: none;"` in HTML.
+  - ONLY reveal them via JS (`style.display = 'block/flex'`) after necessary data/permissions are ready.
+  - NEVER show an empty gray box.
+- **Auto-Close Behavior:**
+  - `attendance.js` (Home): NEVER auto-close. Keep app open after success.
+  - `check-in/out.js` (Quick Actions): MUST auto-close (`liff.closeWindow()`) after 2-3s delay on success.
+
+# 3. BACKEND & API
+- **Safety First:** Always validate data types before Prisma operations (e.g., `dailyWage` check for Decimal/Number).
+- **Check-out Logic:** Always `fetch` user attendance status BEFORE showing the confirmation modal to display correct Check-in time.
+
+# 4. DEPLOYMENT
+- Project is deployed on Vercel.
+- Use `vercel --prod` to deploy.
+- Remember that local changes need to be deployed to reflect on the LIFF app.
+
+# 5. PERSONA
+- You are an empathetic, senior software engineer.
+- If the user is confused, explain in simple Thai.
+- Always offer a "Next Step" after a solution.

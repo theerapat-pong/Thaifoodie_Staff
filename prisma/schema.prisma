@@ -1,0 +1,260 @@
+// ========================================
+// Prisma Schema - Staff Management System
+// ========================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+// ========================================
+// 1. ตารางพนักงาน (Employees)
+// ========================================
+model Employee {
+  id                 String    @id // LINE User ID
+  name               String
+  role               Role      @default(STAFF)
+  daily_salary       Decimal   @db.Decimal(10, 2)
+  department         String?
+  shift_start_time   String?   @db.VarChar(5) // เวลาเข้างานที่กำหนด เช่น "09:00"
+  shift_end_time     String?   @db.VarChar(5) // เวลาออกงานที่กำหนด เช่น "18:00"
+  is_active          Boolean   @default(true)
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+
+  // Leave Quotas (Thai Labor Law 2025)
+  quota_sick         Int       @default(30) // ลาป่วย 30 วัน/ปี
+  quota_personal     Int       @default(3)  // ลากิจ 3 วัน/ปี
+  quota_annual       Int       @default(6)  // ลาพักร้อน 6 วัน/ปี
+
+  // Relations
+  attendances              Attendance[]
+  leaves                   Leave[]
+  advances                 Advance[]
+  pending_check_ins        PendingCheckIn[]
+  approved_leaves          Leave[]          @relation("ApprovedBy")
+  approved_advances        Advance[]        @relation("ApprovedBy")
+  approved_pending_checkins PendingCheckIn[] @relation("PendingCheckInApprovedBy")
+
+  @@map("employees")
+}
+
+enum Role {
+  STAFF
+  ADMIN
+  DEV
+}
+
+// ========================================
+// 2. ตารางการเข้า-ออกงาน (Attendance)
+// ========================================
+model Attendance {
+  id              Int       @id @default(autoincrement())
+  user_id         String
+  date            DateTime  @db.Date
+  check_in_time   DateTime
+  check_out_time  DateTime?
+  total_hours     Decimal?  @db.Decimal(10, 2)
+  daily_wage      Decimal?  @db.Decimal(10, 2)
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+  is_notified     Boolean   @default(false)
+
+  // GPS Data - Check In
+  check_in_latitude    Decimal?        @db.Decimal(10, 8)
+  check_in_longitude   Decimal?        @db.Decimal(11, 8)
+  check_in_accuracy    Decimal?        @db.Decimal(10, 2)
+  check_in_distance    Decimal?        @db.Decimal(10, 2)  // ระยะห่างจากร้าน (เมตร)
+  check_in_status      LocationStatus  @default(VERIFIED)
+  
+  // GPS Data - Check Out
+  check_out_latitude   Decimal?        @db.Decimal(10, 8)
+  check_out_longitude  Decimal?        @db.Decimal(11, 8)
+  check_out_accuracy   Decimal?        @db.Decimal(10, 2)
+  check_out_distance   Decimal?        @db.Decimal(10, 2)
+  check_out_status     LocationStatus?
+  
+  // Approval for suspicious location
+  location_approved_by  String?
+  location_approved_at  DateTime?
+  
+  // Audit trail for approval process
+  approval_type         String?   // 'AUTO' | 'MANUAL' | null
+  approval_note         String?   // บันทึกเพิ่มเติม เช่น "อนุมัติจาก Yellow zone (250m)"
+
+  // Relations
+  employee        Employee  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  // ป้องกัน Check-in ซ้ำในวันเดียวกัน
+  @@unique([user_id, date])
+  @@index([user_id, date])
+  @@map("attendance")
+}
+
+// ========================================
+// 3. ตารางการลา (Leaves)
+// ========================================
+model Leave {
+  id           Int         @id @default(autoincrement())
+  user_id      String
+  leave_type   LeaveType
+  start_date   DateTime    @db.Date
+  end_date     DateTime    @db.Date
+  reason       String
+  status       RequestStatus @default(PENDING)
+  approved_by  String?
+  approved_at  DateTime?
+  total_days   Int
+  created_at   DateTime    @default(now())
+  updated_at   DateTime    @updatedAt
+
+  // Relations
+  employee     Employee    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  approver     Employee?   @relation("ApprovedBy", fields: [approved_by], references: [id])
+
+  @@index([user_id, status])
+  @@index([status])
+  @@map("leaves")
+}
+
+enum LeaveType {
+  SICK      // ลาป่วย
+  PERSONAL  // ลากิจ
+  ANNUAL    // ลาพักร้อน
+  OTHER     // อื่นๆ
+}
+
+// ========================================
+// 4. ตารางการเบิกเงินล่วงหน้า (Advances)
+// ========================================
+model Advance {
+  id          Int           @id @default(autoincrement())
+  user_id     String
+  amount      Decimal       @db.Decimal(10, 2)
+  reason      String
+  status      RequestStatus @default(PENDING)
+  approved_by String?
+  approved_at DateTime?
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+
+  // Relations
+  employee    Employee      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  approver    Employee?     @relation("ApprovedBy", fields: [approved_by], references: [id])
+
+  @@index([user_id, status])
+  @@index([status])
+  @@map("advances")
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED  // สำหรับกรณีผู้ใช้ยกเลิกเอง
+}
+
+// ========================================
+// Location Status for GPS Attendance
+// ========================================
+enum LocationStatus {
+  VERIFIED    // อยู่ในระยะ - อนุมัติอัตโนมัติ
+  PENDING     // อยู่นอกระยะเล็กน้อย - รอ Admin อนุมัติ
+  APPROVED    // Admin อนุมัติแล้ว
+  REJECTED    // Admin ปฏิเสธ
+  NO_GPS      // ไม่มีข้อมูล GPS (เช็คเอาท์)
+}
+
+enum LogLevel {
+  DEBUG
+  INFO
+  WARNING
+  ERROR
+}
+
+// ========================================
+// 5. ตาราง System Logs (Debug & Audit)
+// ========================================
+model SystemLog {
+  id          Int       @id @default(autoincrement())
+  level       LogLevel  @default(INFO)
+  category    String    // e.g., "GPS", "CHECK_IN", "AUTH", "API"
+  action      String    // e.g., "getCurrentPosition", "checkIn"
+  message     String    @db.Text
+  details     Json?     // Additional data (coordinates, errors, etc.)
+  user_id     String?   // LINE User ID if applicable
+  user_agent  String?   // Browser/Device info
+  ip_address  String?   
+  duration_ms Int?      // How long the action took
+  created_at  DateTime  @default(now())
+
+  @@index([category, created_at])
+  @@index([user_id, created_at])
+  @@index([level, created_at])
+  @@map("system_logs")
+}
+
+// ========================================
+// 6. ตารางตำแหน่งที่ทำงาน (Work Locations)
+// ========================================
+model WorkLocation {
+  id              Int       @id @default(autoincrement())
+  name            String    @default("ร้านหลัก")
+  latitude        Decimal   @db.Decimal(10, 8)
+  longitude       Decimal   @db.Decimal(11, 8)
+  allowed_radius  Int       // เมตร - ลงเวลาได้ทันที (ต้องตั้งค่าโดย Admin)
+  warning_radius  Int       // เมตร - รอ Admin อนุมัติ (ต้องตั้งค่าโดย Admin)
+  is_active       Boolean   @default(true)
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  @@map("work_locations")
+}
+
+// ========================================
+// 7. ตารางคำขอลงเวลาเข้างานที่รออนุมัติ (Pending Check-Ins)
+// ========================================
+model PendingCheckIn {
+  id                Int             @id @default(autoincrement())
+  user_id           String
+  requested_date    DateTime        @db.Date
+  requested_time    DateTime        // เวลาที่พนักงานขอลงเวลา
+  
+  // GPS Data
+  latitude          Decimal         @db.Decimal(10, 8)
+  longitude         Decimal         @db.Decimal(11, 8)
+  accuracy          Decimal?        @db.Decimal(10, 2)
+  distance          Decimal         @db.Decimal(10, 2)  // ระยะห่างจากร้าน (เมตร)
+  
+  // Status
+  status            RequestStatus   @default(PENDING)
+  
+  // Approval
+  approved_by       String?
+  approved_at       DateTime?
+  rejection_reason  String?
+  
+  // Metadata
+  created_at        DateTime        @default(now())
+  updated_at        DateTime        @updatedAt
+  
+  // Relations
+  employee          Employee        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  approver          Employee?       @relation("PendingCheckInApprovedBy", fields: [approved_by], references: [id])
+
+  // ป้องกันการส่งคำขอซ้ำในวันเดียวกัน (เมื่อยังรออนุมัติ)
+  @@unique([user_id, requested_date, status])
+  @@index([user_id, status])
+  @@index([status])
+  @@map("pending_check_ins")
+}
+
+// ========================================
+// Note: ConversationState removed in v2.0
+// All conversation flows moved to LIFF (frontend)
+// ========================================

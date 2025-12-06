@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Health Status - Thaifoodie</title>
+    
+    <!-- Eruda Mobile Console (for debugging) -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
+    
+    <style>
+        /* CSS Variables - Mint Fresh Theme */
+        :root {
+            --primary: #4CAF50;
+            --primary-dark: #388E3C;
+            --primary-light: #E8F5E9;
+            --primary-gradient: linear-gradient(90deg, #cdffd8 0%, #539d96 100%);
+            --danger: #e85a6b;
+            --danger-light: #fdeef0;
+            --warning: #f0a500;
+            --warning-light: #fef8e8;
+            --success: #4caf50;
+            --success-light: #e8f5e9;
+            --bg: #f5faf9;
+            --card-bg: #FFFFFF;
+            --text-primary: #2c3e3c;
+            --text-secondary: #5a706d;
+            --text-muted: #8fa8a4;
+            --border: #d4e5e2;
+            --shadow: 0 2px 12px rgba(76, 175, 80, 0.10);
+            --shadow-lg: 0 8px 24px rgba(76, 175, 80, 0.15);
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans Thai', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            padding: 12px;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: var(--primary-gradient);
+            padding: 20px 16px;
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header .subtitle {
+            color: rgba(255,255,255,0.95);
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-overview {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .status-card {
+            background: var(--card-bg);
+            padding: 16px 12px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+            border-left: 3px solid var(--primary);
+        }
+
+        .status-card.operational { border-left-color: var(--success); }
+        .status-card.degraded { border-left-color: var(--warning); }
+        .status-card.outage { border-left-color: var(--danger); }
+
+        .status-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .status-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .status-value.operational { color: var(--success); }
+        .status-value.degraded { color: var(--warning); }
+        .status-value.outage { color: var(--danger); }
+
+        .component-list {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .component-item {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: background 0.2s;
+        }
+
+        .component-item:last-child {
+            border-bottom: none;
+        }
+
+        .component-item:hover {
+            background: var(--primary-light);
+        }
+
+        .component-info {
+            flex: 1;
+        }
+
+        .component-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .component-message {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .component-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            align-self: flex-start;
+        }
+
+        .component-status.operational {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .component-status.issue {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .component-status.outage {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .component-status.checking {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status-icon {
+            font-size: 16px;
+        }
+
+        .meta-info {
+            background: var(--card-bg);
+            padding: 16px 24px;
+            border-radius: var(--radius);
+            margin-top: 24px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .meta-item {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .meta-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--primary-light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Hide LIFF close and minimize buttons */
+        #liffAppContent {
+            /* Prevent LIFF from showing close button */
+        }
+        
+        /* Override LIFF default close button styles */
+        .liff-close-button,
+        [class*="close"],
+        [class*="minimize"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        .error-message {
+            background: var(--danger-light);
+            color: var(--danger);
+            padding: 20px 24px;
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            border-left: 4px solid var(--danger);
+        }
+
+        .auth-error {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .auth-error-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .auth-error-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .auth-error-message {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        /* Desktop Enhancements (larger screens) */
+        @media (min-width: 600px) {
+            body { padding: 20px; font-size: 15px; }
+            .container { max-width: 800px; }
+            .header { padding: 30px 24px; }
+            .header h1 { font-size: 28px; }
+            .header .subtitle { font-size: 14px; }
+            .status-overview { 
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 12px;
+                margin-bottom: 24px;
+            }
+            .status-card { padding: 20px; border-left-width: 4px; }
+            .status-label { font-size: 12px; margin-bottom: 8px; }
+            .status-value { font-size: 24px; }
+            .component-item { 
+                padding: 20px 24px;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .component-status { 
+                padding: 6px 14px;
+                border-radius: 20px;
+                font-size: 13px;
+                align-self: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 System Health Status</h1>
+            <div class="subtitle">Thaifoodie Staff Management System</div>
+        </div>
+
+        <div id="auth-check" class="loading">
+            <div class="spinner"></div>
+            <p>กำลังตรวจสอบสิทธิ์การเข้าถึง...</p>
+        </div>
+
+        <div id="content" style="display: none;">
+            <div class="status-overview">
+                <div class="status-card" id="overall-status-card">
+                    <div class="status-label">Overall Status</div>
+                    <div class="status-value" id="overall-status">-</div>
+                </div>
+                <div class="status-card">
+                    <div class="status-label">Response Time</div>
+                    <div class="status-value" id="response-time" style="color: var(--primary);">-</div>
+                </div>
+            </div>
+
+            <div class="component-list" id="component-list">
+                <!-- Components will be populated here -->
+            </div>
+
+            <div class="meta-info">
+                <div class="meta-item">
+                    <span class="meta-value" id="timestamp">-</span>
+                </div>
+                <div class="meta-item">
+                    <span style="color: var(--text-muted);">Last Updated: </span>
+                    <span class="meta-value" id="last-updated">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script>
+        let accessToken = null;
+
+        // Initialize LIFF
+        async function initLiff() {
+            try {
+                console.log('[Status] Starting LIFF check...');
+                // LIFF is already initialized when opened via liff.line.me
+                // No need to call liff.init() again
+                console.log('[Status] LIFF ready');
+                
+                // Disable close button (prevent user from closing)
+                try {
+                    if (typeof liff.permanentLink !== 'undefined') {
+                        // For newer LIFF versions
+                    }
+                } catch (e) {
+                    console.log('Close button control not available');
+                }
+                
+                if (!liff.isLoggedIn()) {
+                    console.log('[Status] Not logged in, redirecting to login...');
+                    liff.login();
+                    return;
+                }
+
+                console.log('[Status] User is logged in');
+                accessToken = liff.getAccessToken();
+                console.log('[Status] Access token obtained');
+                
+                // Verify role access
+                console.log('[Status] Starting auth check...');
+                const authCheck = await checkAuth();
+                console.log('[Status] Auth check result:', authCheck);
+                
+                if (!authCheck.success) {
+                    console.error('[Status] Auth check failed:', authCheck.error);
+                    showAuthError(authCheck.error);
+                    return;
+                }
+
+                // Hide auth check, show content
+                console.log('[Status] Showing content...');
+                document.getElementById('auth-check').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+
+                // Load health status
+                console.log('[Status] Loading health status...');
+                loadHealthStatus();
+                
+                // Auto refresh every 30 seconds
+                setInterval(loadHealthStatus, 30000);
+                console.log('[Status] Initialization complete!');
+
+            } catch (error) {
+                console.error('LIFF init failed:', error);
+                showAuthError('เกิดข้อผิดพลาด: ' + error.message);
+            }
+        }
+
+        // Check authentication and role
+        async function checkAuth() {
+            try {
+                console.log('[Status] Checking auth with token:', accessToken ? 'exists' : 'missing');
+                
+                const response = await fetch('/api/liff/user/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+
+                console.log('[Status] Profile API response status:', response.status);
+                const data = await response.json();
+                console.log('[Status] Profile data:', data);
+                
+                if (!data.success) {
+                    console.error('[Status] Auth failed:', data.error);
+                    return { success: false, error: data.error || 'Authentication failed' };
+                }
+
+                // Extract role from data.employee.role
+                const userRole = data.employee?.role || data.data?.employee?.role;
+                console.log('[Status] User role:', userRole);
+                
+                // Check role - STAFF, ADMIN, DEV can access
+                const allowedRoles = ['STAFF', 'ADMIN', 'DEV'];
+                if (!allowedRoles.includes(userRole)) {
+                    console.error('[Status] Role check failed. Allowed:', allowedRoles, 'Got:', userRole);
+                    return { success: false, error: 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้' };
+                }
+
+                console.log('[Status] Auth check passed!');
+                return { success: true, role: userRole };
+
+            } catch (error) {
+                console.error('[Status] Auth check exception:', error);
+                return { success: false, error: 'Failed to verify authentication' };
+            }
+        }
+
+        // Load health status from API
+        async function loadHealthStatus() {
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+
+                // Update overall status
+                const overallStatus = data.status || 'unknown';
+                document.getElementById('overall-status').textContent = 
+                    overallStatus.charAt(0).toUpperCase() + overallStatus.slice(1);
+                document.getElementById('overall-status').className = 
+                    'status-value ' + overallStatus;
+                document.getElementById('overall-status-card').className = 
+                    'status-card ' + overallStatus;
+
+                // Update response time
+                document.getElementById('response-time').textContent = data.response_time || '-';
+
+                // Update timestamp
+                const timestamp = new Date(data.timestamp);
+                document.getElementById('timestamp').textContent = 
+                    timestamp.toLocaleString('th-TH');
+                document.getElementById('last-updated').textContent = 
+                    timestamp.toLocaleTimeString('th-TH');
+
+                // Render components
+                renderComponents(data.components || {});
+
+            } catch (error) {
+                console.error('Failed to load health status:', error);
+                showError('ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        // Render component list
+        function renderComponents(components) {
+            const container = document.getElementById('component-list');
+            container.innerHTML = '';
+
+            const componentNames = {
+                database: '🗄️ Database',
+                line_api: '💬 LINE API',
+                attendance_system: '⏰ Attendance System',
+                leave_system: '📅 Leave System',
+                advance_system: '💰 Advance System',
+                cron_job: '🔄 Cron Jobs',
+                server: '🖥️ Server'
+            };
+
+            const statusIcons = {
+                operational: '✓',
+                checking: '⏳',
+                issue: '⚠️',
+                outage: '✕'
+            };
+
+            for (const [key, component] of Object.entries(components)) {
+                const item = document.createElement('div');
+                item.className = 'component-item';
+
+                const status = component.status || 'checking';
+                const icon = statusIcons[status] || '•';
+
+                item.innerHTML = `
+                    <div class="component-info">
+                        <div class="component-name">${componentNames[key] || key}</div>
+                        <div class="component-message">${component.message || '-'}</div>
+                        ${component.latency ? `<div class="component-message" style="color: var(--primary); margin-top: 4px;">⚡ ${component.latency}</div>` : ''}
+                    </div>
+                    <div class="component-status ${status}">
+                        <span class="status-icon">${icon}</span>
+                        <span>${status.charAt(0).toUpperCase() + status.slice(1)}</span>
+                    </div>
+                `;
+
+                container.appendChild(item);
+            }
+        }
+
+        // Show authentication error
+        function showAuthError(message) {
+            const authCheck = document.getElementById('auth-check');
+            authCheck.innerHTML = `
+                <div class="auth-error">
+                    <div class="auth-error-icon">🔒</div>
+                    <div class="auth-error-title">ไม่มีสิทธิ์เข้าถึง</div>
+                    <div class="auth-error-message">${message}</div>
+                </div>
+            `;
+        }
+
+        // Show error message
+        function showError(message) {
+            const content = document.getElementById('content');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            content.insertBefore(errorDiv, content.firstChild);
+            
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        // Initialize on load
+        window.addEventListener('load', initLiff);
+    </script>
+</body>
+</html>

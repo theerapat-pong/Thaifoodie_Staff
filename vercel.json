@@ -1,0 +1,60 @@
+{
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "name": "staff-management",
+    "version": 2,
+    "buildCommand": "prisma generate",
+    "outputDirectory": "public",
+    "regions": ["sin1"],
+    "crons": [
+        {
+            "path": "/api/cron-forgot-checkout",
+            "schedule": "0 0 * * *"
+        },
+        {
+            "path": "/api/cron-monthly-report",
+            "schedule": "0 9 1 * *"
+        }
+    ],
+    "functions": {
+        "api/**/*.js": {
+            "maxDuration": 10
+        }
+    },
+    "rewrites": [
+        {
+            "source": "/",
+            "has": [
+                {
+                    "type": "host",
+                    "value": "systemlog.thaifoodie.site"
+                }
+            ],
+            "destination": "/systemlog.html"
+        },
+        {
+            "source": "/",
+            "has": [
+                {
+                    "type": "host",
+                    "value": "statushealth.thaifoodie.site"
+                }
+            ],
+            "destination": "/status.html"
+        },
+        { "source": "/api/:path*", "destination": "/api/:path*" },
+        { "source": "/spa.html", "destination": "/spa.html" },
+        { "source": "/status.html", "destination": "/status.html" },
+        { "source": "/systemlog.html", "destination": "/systemlog.html" },
+        { "source": "/css/:path*", "destination": "/css/:path*" },
+        { "source": "/js/:path*", "destination": "/js/:path*" },
+        { "source": "/:path*", "destination": "/spa.html" }
+    ],
+    "headers": [
+        {
+            "source": "/(.*)",
+            "headers": [
+                { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+            ]
+        }
+    ]
+}

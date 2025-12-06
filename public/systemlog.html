@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>System Logs - Thaifoodie</title>
+    
+    <!-- Eruda Mobile Console (for debugging) -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
+    
+    <style>
+        /* CSS Variables - Mint Fresh Theme */
+        :root {
+            --primary: #4CAF50;
+            --primary-dark: #388E3C;
+            --primary-light: #E8F5E9;
+            --primary-gradient: linear-gradient(90deg, #cdffd8 0%, #539d96 100%);
+            --danger: #e85a6b;
+            --danger-light: #fdeef0;
+            --warning: #f0a500;
+            --warning-light: #fef8e8;
+            --success: #4caf50;
+            --info: #5b9bd5;
+            --info-light: #eef5fb;
+            --bg: #f5faf9;
+            --card-bg: #FFFFFF;
+            --text-primary: #2c3e3c;
+            --text-secondary: #5a706d;
+            --text-muted: #8fa8a4;
+            --border: #d4e5e2;
+            --shadow: 0 2px 12px rgba(76, 175, 80, 0.10);
+            --shadow-lg: 0 8px 24px rgba(76, 175, 80, 0.15);
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans Thai', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            padding: 10px;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: var(--primary-gradient);
+            padding: 18px 14px;
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header .subtitle {
+            color: rgba(255,255,255,0.95);
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .filters {
+            background: var(--card-bg);
+            padding: 12px;
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        select, input {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            color: var(--text-primary);
+            transition: border-color 0.2s;
+            width: 100%;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-outline {
+            background: white;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 12px 8px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 2px;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .logs-container {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .log-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+        }
+
+        .log-item:last-child {
+            border-bottom: none;
+        }
+
+        .log-item:hover {
+            background: var(--primary-light);
+        }
+
+        .log-header {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 8px;
+            gap: 8px;
+        }
+
+        .log-level {
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            display: inline-block;
+        }
+
+        .log-level.INFO {
+            background: var(--info-light);
+            color: var(--info);
+        }
+
+        .log-level.WARN {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .log-level.ERROR {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .log-category {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .log-time {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-family: 'Courier New', monospace;
+        }
+
+        .log-message {
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .log-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .log-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .log-details {
+            margin-top: 12px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .log-details pre {
+            margin: 0;
+            font-size: 11px;
+            font-family: 'Courier New', monospace;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-top: 16px;
+            padding: 16px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .pagination-info {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--primary-light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Hide LIFF close and minimize buttons */
+        #liffAppContent {
+            /* Prevent LIFF from showing close button */
+        }
+        
+        /* Override LIFF default close button styles */
+        .liff-close-button,
+        [class*="close"],
+        [class*="minimize"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .auth-error {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .auth-error-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .auth-error-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .auth-error-message {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        /* Desktop Enhancements (larger screens) */
+        @media (min-width: 600px) {
+            body { padding: 12px; font-size: 15px; }
+            .container { max-width: 1200px; }
+            .header { padding: 24px 20px; margin-bottom: 16px; }
+            .header h1 { font-size: 24px; margin-bottom: 6px; }
+            .header .subtitle { font-size: 13px; }
+            .filters { padding: 16px; margin-bottom: 16px; }
+            .filter-row { 
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                gap: 12px;
+                margin-bottom: 12px;
+            }
+            .stats-row { 
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 12px;
+                margin-bottom: 16px;
+            }
+            .stat-card { padding: 16px; }
+            .stat-value { font-size: 24px; margin-bottom: 4px; }
+            .stat-label { font-size: 12px; }
+            .log-item { padding: 16px; }
+            .log-header { 
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .log-level { 
+                padding: 4px 10px;
+                border-radius: 12px;
+                font-size: 11px;
+                letter-spacing: 0.5px;
+            }
+            .log-time { font-size: 12px; margin-left: auto; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 System Logs</h1>
+            <div class="subtitle">Developer Dashboard - Thaifoodie Staff Management</div>
+        </div>
+
+        <div id="auth-check" class="loading">
+            <div class="spinner"></div>
+            <p>กำลังตรวจสอบสิทธิ์การเข้าถึง...</p>
+        </div>
+
+        <div id="content" style="display: none;">
+            <!-- Filters -->
+            <div class="filters">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label class="filter-label">Level</label>
+                        <select id="filter-level">
+                            <option value="">All Levels</option>
+                            <option value="INFO">INFO</option>
+                            <option value="WARN">WARN</option>
+                            <option value="ERROR">ERROR</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Category</label>
+                        <select id="filter-category">
+                            <option value="">All Categories</option>
+                            <option value="GPS">GPS</option>
+                            <option value="CHECK_IN">CHECK_IN</option>
+                            <option value="CHECK_OUT">CHECK_OUT</option>
+                            <option value="AUTH">AUTH</option>
+                            <option value="API">API</option>
+                            <option value="CRON">CRON</option>
+                            <option value="SYSTEM">SYSTEM</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">User ID</label>
+                        <input type="text" id="filter-userId" placeholder="LINE User ID">
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Page Size</label>
+                        <select id="filter-limit">
+                            <option value="25">25</option>
+                            <option value="50" selected>50</option>
+                            <option value="100">100</option>
+                            <option value="200">200</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-primary" onclick="applyFilters()">🔍 Search</button>
+                    <button class="btn btn-outline" onclick="resetFilters()">🔄 Reset</button>
+                    <button class="btn btn-outline" onclick="loadLogs()" style="margin-left: auto;">♻️ Refresh</button>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-total">0</div>
+                    <div class="stat-label">Total Logs</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-page">1</div>
+                    <div class="stat-label">Current Page</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-showing">0</div>
+                    <div class="stat-label">Showing</div>
+                </div>
+            </div>
+
+            <!-- Logs List -->
+            <div class="logs-container" id="logs-list">
+                <!-- Logs will be populated here -->
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="pagination" style="display: none;">
+                <button class="btn btn-outline" id="btn-prev" onclick="prevPage()" disabled>← Prev</button>
+                <div class="pagination-info" id="pagination-info">Page 1</div>
+                <button class="btn btn-outline" id="btn-next" onclick="nextPage()" disabled>Next →</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script>
+        let accessToken = null;
+        let currentPage = 1;
+        let pagination = null;
+
+        // Initialize LIFF
+        async function initLiff() {
+            try {
+                console.log('[SystemLog] Starting LIFF check...');
+                // LIFF is already initialized when opened via liff.line.me
+                // No need to call liff.init() again
+                console.log('[SystemLog] LIFF ready');
+                
+                // Disable close button (prevent user from closing)
+                try {
+                    if (typeof liff.permanentLink !== 'undefined') {
+                        // For newer LIFF versions
+                    }
+                } catch (e) {
+                    console.log('Close button control not available');
+                }
+                
+                if (!liff.isLoggedIn()) {
+                    console.log('[SystemLog] Not logged in, redirecting to login...');
+                    liff.login();
+                    return;
+                }
+
+                console.log('[SystemLog] User is logged in');
+                accessToken = liff.getAccessToken();
+                console.log('[SystemLog] Access token obtained');
+                
+                // Verify DEV role
+                console.log('[SystemLog] Starting auth check...');
+                const authCheck = await checkAuth();
+                console.log('[SystemLog] Auth check result:', authCheck);
+                
+                if (!authCheck.success) {
+                    console.error('[SystemLog] Auth check failed:', authCheck.error);
+                    showAuthError(authCheck.error);
+                    return;
+                }
+
+                // Hide auth check, show content
+                console.log('[SystemLog] Showing content...');
+                document.getElementById('auth-check').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+
+                // Load logs
+                console.log('[SystemLog] Loading logs...');
+                await loadLogs();
+                console.log('[SystemLog] Initialization complete!');
+
+            } catch (error) {
+                console.error('[SystemLog] LIFF init failed:', error);
+                showAuthError('เกิดข้อผิดพลาด: ' + error.message);
+            }
+        }
+
+        // Check authentication and DEV role
+        async function checkAuth() {
+            try {
+                console.log('[SystemLog] Checking auth with token:', accessToken ? 'exists' : 'missing');
+                
+                const response = await fetch('/api/liff/user/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+
+                console.log('[SystemLog] Profile API response status:', response.status);
+                const data = await response.json();
+                console.log('[SystemLog] Profile data:', data);
+                
+                if (!data.success) {
+                    console.error('[SystemLog] Auth failed:', data.error);
+                    return { success: false, error: data.error || 'Authentication failed' };
+                }
+
+                // Extract role from data.employee.role
+                const userRole = data.employee?.role || data.data?.employee?.role;
+                console.log('[SystemLog] User role:', userRole);
+                
+                // Check DEV role only
+                if (userRole !== 'DEV') {
+                    console.error('[SystemLog] Role check failed. Expected: DEV, Got:', userRole);
+                    return { success: false, error: 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้ (ต้องการ DEV role)' };
+                }
+
+                console.log('[SystemLog] Auth check passed!');
+                return { success: true, role: userRole };
+
+            } catch (error) {
+                console.error('[SystemLog] Auth check exception:', error);
+                return { success: false, error: 'Failed to verify authentication' };
+            }
+        }
+
+        // Load logs from API
+        async function loadLogs(page = currentPage) {
+            const container = document.getElementById('logs-list');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div><p>กำลังโหลด...</p></div>';
+
+            try {
+                console.log('[SystemLog] Building query params...');
+                // Build query string
+                const params = new URLSearchParams();
+                params.append('page', page);
+                params.append('limit', document.getElementById('filter-limit').value);
+
+                const level = document.getElementById('filter-level').value;
+                if (level) params.append('level', level);
+
+                const category = document.getElementById('filter-category').value;
+                if (category) params.append('category', category);
+
+                const userId = document.getElementById('filter-userId').value.trim();
+                if (userId) params.append('userId', userId);
+
+                console.log('[SystemLog] Fetching logs from API...');
+                // Fetch logs
+                const response = await fetch(`/api/liff/admin/system-logs?${params}`, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+
+                console.log('[SystemLog] API response status:', response.status);
+                const result = await response.json();
+                console.log('[SystemLog] API result:', result);
+
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to load logs');
+                }
+
+                const { logs, pagination: pag } = result.data;
+                pagination = pag;
+                currentPage = page;
+
+                console.log('[SystemLog] Loaded', logs.length, 'logs');
+
+                // Update stats
+                document.getElementById('stat-total').textContent = pag.total.toLocaleString();
+                document.getElementById('stat-page').textContent = pag.page;
+                document.getElementById('stat-showing').textContent = logs.length;
+
+                // Render logs
+                if (logs.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <div>ไม่พบ logs</div>
+                        </div>
+                    `;
+                    document.getElementById('pagination').style.display = 'none';
+                } else {
+                    console.log('[SystemLog] Rendering logs...');
+                    renderLogs(logs);
+                    updatePagination();
+                }
+
+            } catch (error) {
+                console.error('[SystemLog] Failed to load logs:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">❌</div>
+                        <div style="color: var(--danger);">${escapeHtml(error.message)}</div>
+                    </div>
+                `;
+            }
+        }
+
+        // Render logs list
+        function renderLogs(logs) {
+            const container = document.getElementById('logs-list');
+            
+            const categoryIcons = {
+                GPS: '📍',
+                CHECK_IN: '🔵',
+                CHECK_OUT: '🔴',
+                AUTH: '🔐',
+                API: '🔌',
+                CRON: '⏰',
+                SYSTEM: '⚙️'
+            };
+
+            try {
+                const html = logs.map(log => {
+                    try {
+                        const time = new Date(log.created_at).toLocaleString('th-TH', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        });
+
+                        const icon = categoryIcons[log.category] || '📝';
+                        const hasDetails = log.details && Object.keys(log.details).length > 0;
+                        
+                        // Safely get values
+                        const level = escapeHtml(log.level || 'INFO');
+                        const category = escapeHtml(log.category || 'SYSTEM');
+                        const message = escapeHtml(log.message || '');
+                        const action = log.action ? escapeHtml(log.action) : '';
+                        const userId = log.user_id ? escapeHtml(log.user_id.substring(0, 20)) : '';
+                        const duration = log.duration_ms || '';
+                        const ip = log.ip_address ? escapeHtml(log.ip_address) : '';
+                        
+                        let detailsHtml = '';
+                        if (hasDetails) {
+                            try {
+                                const detailsStr = JSON.stringify(log.details, null, 2);
+                                detailsHtml = `
+                                    <div class="log-details">
+                                        <pre>${escapeHtml(detailsStr)}</pre>
+                                    </div>
+                                `;
+                            } catch (e) {
+                                console.error('Error stringifying details:', e);
+                            }
+                        }
+
+                        return `
+                            <div class="log-item">
+                                <div class="log-header">
+                                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                                        <span class="log-level ${level}">${level}</span>
+                                        <span class="log-category">${icon} ${category}</span>
+                                    </div>
+                                    <div class="log-time">${time}</div>
+                                </div>
+                                <div class="log-message">${message}</div>
+                                <div class="log-meta">
+                                    ${action ? `<span class="log-meta-item">🎯 ${action}</span>` : ''}
+                                    ${userId ? `<span class="log-meta-item">👤 ${userId}...</span>` : ''}
+                                    ${duration ? `<span class="log-meta-item">⏱️ ${duration}ms</span>` : ''}
+                                    ${ip ? `<span class="log-meta-item">🌐 ${ip}</span>` : ''}
+                                </div>
+                                ${detailsHtml}
+                            </div>
+                        `;
+                    } catch (error) {
+                        console.error('Error rendering log item:', error, log);
+                        return `<div class="log-item"><div class="log-message" style="color: var(--danger);">Error rendering log</div></div>`;
+                    }
+                }).join('');
+                
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error rendering logs:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">❌</div>
+                        <div style="color: var(--danger);">Error rendering logs: ${escapeHtml(error.message)}</div>
+                    </div>
+                `;
+            }
+        }
+
+        // Update pagination controls
+        function updatePagination() {
+            document.getElementById('pagination').style.display = 'flex';
+            document.getElementById('pagination-info').textContent = 
+                `Page ${pagination.page} of ${pagination.totalPages}`;
+            
+            document.getElementById('btn-prev').disabled = !pagination.hasPrev;
+            document.getElementById('btn-next').disabled = !pagination.hasNext;
+        }
+
+        // Pagination controls
+        function prevPage() {
+            if (pagination.hasPrev) {
+                loadLogs(currentPage - 1);
+            }
+        }
+
+        function nextPage() {
+            if (pagination.hasNext) {
+                loadLogs(currentPage + 1);
+            }
+        }
+
+        // Apply filters
+        function applyFilters() {
+            currentPage = 1;
+            loadLogs(1);
+        }
+
+        // Reset filters
+        function resetFilters() {
+            document.getElementById('filter-level').value = '';
+            document.getElementById('filter-category').value = '';
+            document.getElementById('filter-userId').value = '';
+            document.getElementById('filter-limit').value = '50';
+            currentPage = 1;
+            loadLogs(1);
+        }
+
+        // Show authentication error
+        function showAuthError(message) {
+            const authCheck = document.getElementById('auth-check');
+            authCheck.innerHTML = `
+                <div class="auth-error">
+                    <div class="auth-error-icon">🔒</div>
+                    <div class="auth-error-title">ไม่มีสิทธิ์เข้าถึง</div>
+                    <div class="auth-error-message">${message}</div>
+                </div>
+            `;
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize on load
+        window.addEventListener('load', initLiff);
+    </script>
+</body>
+</html>

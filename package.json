@@ -1,0 +1,36 @@
+{
+  "name": "staff-postgresql",
+  "version": "1.0.0",
+  "description": "LINE Chatbot สำหรับจัดการพนักงาน - Node.js + PostgreSQL",
+  "main": "api/webhook.js",
+  "scripts": {
+    "start": "vercel dev",
+    "build": "prisma generate",
+    "test:api": "node tests/api-smoke.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio"
+  },
+  "keywords": [
+    "line-bot",
+    "attendance",
+    "postgresql",
+    "vercel",
+    "prisma"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@line/bot-sdk": "^9.3.0",
+    "@prisma/client": "^5.22.0",
+    "dayjs": "^1.11.13",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0"
+  },
+  "engines": {
+    "node": "20.x"
+  }
+}

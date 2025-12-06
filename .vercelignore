@@ -1,0 +1,8 @@
+# Vercel Ignore Rules
+*.md
+*.test.js
+test-*.js
+scripts/
+tests/
+.env
+.git
