@@ -4,9 +4,10 @@
 // ========================================
 
 (function attachDataFetcher(global) {
-    const queryLib = global.TanStackQueryCore;
+    const queryLib = global.TanStackQueryCore || global.QueryCore || window.TanStackQueryCore;
     if (!queryLib) {
         console.warn('[DataFetcher] TanStack Query Core not found. Caching disabled.');
+        console.warn('[DataFetcher] Available globals:', Object.keys(global).filter(k => k.includes('Query') || k.includes('TanStack')));
         return;
     }
 

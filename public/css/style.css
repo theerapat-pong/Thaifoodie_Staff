@@ -1188,7 +1188,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .confirm-content.danger .form-group {
-    margin-top: 16px;
+    margin-top: 12px;
     text-align: left;
 }
 
@@ -1250,16 +1250,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
+    width: 100vw;
+    height: 100dvh;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     display: none;
     justify-content: center;
     align-items: center;
-    z-index: 2000;
-    padding: 20px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    z-index: 9999;
+    overflow: hidden;
+    padding: 0;
 }
 
 .confirm-modal.show {
@@ -1274,21 +1275,26 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .confirm-content {
     background: white;
-    border-radius: var(--radius-lg);
-    padding: 28px 24px;
-    width: 100%;
-    max-width: 440px;
-    max-height: 90vh;
+    border-radius: 16px;
+    padding: 24px;
+    width: 90%;
+    max-width: 380px;
+    height: auto;
+    min-height: 0;
+    max-height: 85dvh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
     animation: modalEnter 0.25s ease-out;
     position: relative;
+    box-sizing: border-box;
 }
 
 .confirm-content.employee-form-modal {
-    max-width: 500px;
-    max-height: 85vh;
+    max-width: 420px;
+    max-height: 85dvh;
+    padding: 24px;
+    height: auto;
 }
 
 .confirm-content.danger {
@@ -1299,19 +1305,19 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     font-size: 20px;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     text-align: center;
 }
 
 .confirm-icon {
     font-size: 56px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     text-align: center;
 }
 
 .confirm-message {
     color: var(--text-secondary);
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     text-align: center;
     line-height: 1.6;
 }
@@ -1319,7 +1325,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .confirm-buttons {
     display: flex;
     gap: 12px;
-    margin-top: 24px;
+    margin-top: 20px;
 }
 
 .confirm-buttons .btn {
@@ -1329,7 +1335,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 /* Employee Form Styles - Full Width, Proper Padding */
 .form-group {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .form-label {
@@ -1342,7 +1348,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .form-control {
     width: 100%;
-    padding: 12px 16px;
+    padding: 10px 14px;
     font-size: 15px;
     border: 2px solid var(--border);
     border-radius: var(--radius-sm);
@@ -1350,6 +1356,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     color: var(--text-primary);
     transition: border-color 0.2s ease;
     font-family: inherit;
+    box-sizing: border-box;
 }
 
 .form-control:focus {
@@ -1373,7 +1380,7 @@ select.form-control {
 
 textarea.form-control {
     resize: vertical;
-    min-height: 80px;
+    min-height: 70px;
     line-height: 1.5;
 }
 
@@ -1385,7 +1392,7 @@ textarea.form-control {
 
 .form-group.half {
     flex: 1;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .form-hint {
@@ -1397,8 +1404,8 @@ textarea.form-control {
 
 /* QR Scanner Section - No Overflow */
 .qr-section {
-    margin-bottom: 20px;
-    padding-bottom: 20px;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
     border-bottom: 2px solid var(--border-light);
 }
 
@@ -2337,17 +2344,17 @@ textarea.form-control {
 /* Request Card - Improved Spacing & Grid Layout */
 .request-card {
     background: var(--card-bg);
-    border-radius: var(--radius);
+    border-radius: 14px;
     padding: 18px;
     margin-bottom: 16px;
-    box-shadow: var(--shadow);
-    border-left: 4px solid var(--primary);
+    box-shadow: 0 3px 16px rgba(76, 175, 80, 0.12);
+    border-left: 5px solid var(--primary);
     transition: all 0.2s ease;
     touch-action: manipulation;
 }
 
 .request-card:hover {
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 8px 28px rgba(76, 175, 80, 0.18);
     transform: translateY(-2px);
 }
 

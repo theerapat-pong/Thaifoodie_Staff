@@ -10,8 +10,8 @@ const LIFF_ID = '2008633012-xKvPGV8v';
 const LINE_OA_ID = '@482pycvx'; // เปลี่ยนเป็น LINE OA ID ของคุณ
 
 // Security Settings
-const REQUIRE_LINE_CLIENT = true; // บังคับเปิดใน LINE App เท่านั้น
-const ALLOW_EXTERNAL_LOGIN = false; // ❌ ปิดไม่อนุญาต Login จาก External Browser (เหมือน K-PLUS)
+const REQUIRE_LINE_CLIENT = false; // 🔧 DEBUG MODE: Allow desktop browser access
+const ALLOW_EXTERNAL_LOGIN = true; // 🔧 DEBUG MODE: Enable LINE Web Login for debugging
 
 // Global state
 window.liffState = {
