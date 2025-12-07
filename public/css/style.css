@@ -4387,3 +4387,60 @@ button:active,
 .mt-1 {
     margin-top: 8px;
 }
+
+/* ========================================
+   Reset Modal Styles
+   ======================================== */
+
+.reset-options-panel {
+    background-color: var(--bg);
+    padding: 16px;
+    border-radius: var(--radius-sm);
+    margin: 16px 0;
+}
+
+.reset-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.reset-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.reset-option:hover {
+    background-color: rgba(232, 90, 107, 0.05);
+}
+
+.reset-option input[type="checkbox"] {
+    margin-top: 2px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--danger);
+    flex-shrink: 0;
+}
+
+.reset-option > div {
+    flex: 1;
+}
+
+.option-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.option-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
