@@ -126,11 +126,13 @@ const SettingsView = {
     showResetModal() {
         const modal = document.getElementById('reset-modal');
         document.querySelectorAll('input[name="resetTarget"]').forEach(cb => cb.checked = false);
+        document.body.classList.add('modal-open');
         modal.classList.add('show');
     },
 
     hideResetModal() {
         const modal = document.getElementById('reset-modal');
+        document.body.classList.remove('modal-open');
         modal.classList.remove('show');
     },
 

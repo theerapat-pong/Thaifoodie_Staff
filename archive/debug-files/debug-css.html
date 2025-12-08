@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS & HTML Debugging Tool</title>
+    <link rel="stylesheet" href="/css/style.css?v=20251207">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .debug-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .debug-section h2 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .result-item {
+            padding: 10px;
+            margin: 8px 0;
+            border-left: 4px solid #2196F3;
+            background: #E3F2FD;
+        }
+        .error-item {
+            border-left-color: #f44336;
+            background: #FFEBEE;
+        }
+        .warning-item {
+            border-left-color: #ff9800;
+            background: #FFF3E0;
+        }
+        .success-item {
+            border-left-color: #4caf50;
+            background: #E8F5E9;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .test-container {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fafafa;
+            border: 1px dashed #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 CSS & HTML Debugging Tool - Thaifoodie Staff</h1>
+    
+    <div class="debug-section">
+        <h2>1. CSS Variable Check</h2>
+        <div id="css-variables-result"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>2. CSS Selector Conflicts</h2>
+        <div id="css-conflicts-result"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>3. HTML Structure Validation</h2>
+        <div id="html-structure-result"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>4. Media Query Coverage</h2>
+        <div id="media-query-result"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>5. Test Elements - Render Check</h2>
+        <div id="render-test-result"></div>
+        <div class="test-container">
+            <!-- Test pending-badge -->
+            <div style="position: relative; display: inline-block; margin: 20px;">
+                <span class="menu-item">
+                    <div class="menu-icon">⏰</div>
+                    <div class="menu-label">ทดสอบ Badge</div>
+                    <span class="pending-badge" style="display: flex;">5</span>
+                </span>
+            </div>
+
+            <!-- Test balance-card -->
+            <div class="balance-card">
+                <div class="balance-info">
+                    <div class="balance-label">ยอดเงินคงเหลือ (ทดสอบ)</div>
+                    <div class="balance-value">฿1,234</div>
+                </div>
+            </div>
+
+            <!-- Test admin-section -->
+            <div class="admin-section" style="display: block;">
+                <div class="menu-section-title">Admin Section (ทดสอบ)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="debug-section">
+        <h2>6. Actions</h2>
+        <button onclick="runAllTests()">🔄 Run All Tests</button>
+        <button onclick="checkBrowserCompatibility()">🌐 Browser Compatibility</button>
+        <button onclick="downloadReport()">📥 Download Report</button>
+    </div>
+
+    <script>
+        // ========================================
+        // 1. ตรวจสอบ CSS Variables
+        // ========================================
+        function checkCSSVariables() {
+            const rootStyles = getComputedStyle(document.documentElement);
+            const requiredVariables = [
+                '--primary', '--primary-dark', '--primary-light', '--primary-gradient',
+                '--danger', '--warning', '--success', '--info',
+                '--bg', '--card-bg', '--text-primary', '--text-secondary',
+                '--shadow', '--radius', '--transition'
+            ];
+
+            const results = [];
+            const missingVars = [];
+
+            requiredVariables.forEach(varName => {
+                const value = rootStyles.getPropertyValue(varName);
+                if (!value || value.trim() === '') {
+                    missingVars.push(varName);
+                    results.push(`<div class="result-item error-item">❌ <code>${varName}</code> ไม่ได้ถูกกำหนดใน :root</div>`);
+                } else {
+                    results.push(`<div class="result-item success-item">✅ <code>${varName}</code> = ${value}</div>`);
+                }
+            });
+
+            document.getElementById('css-variables-result').innerHTML = results.join('');
+            return missingVars;
+        }
+
+        // ========================================
+        // 2. ตรวจสอบ CSS Selector Conflicts
+        // ========================================
+        function checkCSSConflicts() {
+            const testSelectors = [
+                { selector: '.pending-badge', expectedCount: 'multiple definitions' },
+                { selector: '.menu-item', expectedCount: 'multiple definitions' },
+                { selector: '.balance-card', expectedCount: 'single definition' },
+                { selector: '.admin-section', expectedCount: 'single definition' }
+            ];
+
+            const results = [];
+
+            testSelectors.forEach(({ selector }) => {
+                const elements = document.querySelectorAll(selector);
+                const testEl = document.querySelector(selector);
+                
+                if (elements.length === 0 && selector === '.pending-badge') {
+                    results.push(`<div class="result-item warning-item">⚠️ <code>${selector}</code> - No elements found in DOM (expected, will be shown by JS)</div>`);
+                } else if (testEl) {
+                    const computedStyle = getComputedStyle(testEl);
+                    const display = computedStyle.display;
+                    const position = computedStyle.position;
+                    const background = computedStyle.backgroundColor;
+                    
+                    results.push(`<div class="result-item success-item">
+                        ✅ <code>${selector}</code> exists<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;display: ${display}<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;position: ${position}<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;background: ${background}
+                    </div>`);
+
+                    // Check for !important usage
+                    const styleSheets = Array.from(document.styleSheets);
+                    let hasImportant = false;
+                    styleSheets.forEach(sheet => {
+                        try {
+                            const rules = Array.from(sheet.cssRules || sheet.rules || []);
+                            rules.forEach(rule => {
+                                if (rule.selectorText && rule.selectorText.includes(selector.replace('.', ''))) {
+                                    const cssText = rule.style.cssText;
+                                    if (cssText.includes('!important')) {
+                                        hasImportant = true;
+                                    }
+                                }
+                            });
+                        } catch (e) {
+                            // CORS error for external stylesheets
+                        }
+                    });
+
+                    if (hasImportant) {
+                        results.push(`<div class="result-item warning-item">⚠️ <code>${selector}</code> uses !important - may cause override issues</div>`);
+                    }
+                }
+            });
+
+            document.getElementById('css-conflicts-result').innerHTML = results.join('');
+        }
+
+        // ========================================
+        // 3. ตรวจสอบ HTML Structure
+        // ========================================
+        function checkHTMLStructure() {
+            const results = [];
+            
+            // Check for required IDs from home.js
+            const requiredIds = [
+                'user-avatar', 'user-name', 'user-role',
+                'today-status', 'today-value', 'balance-value',
+                'pending-badge', 'admin-section', 'admin-pending-badge'
+            ];
+
+            requiredIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) {
+                    results.push(`<div class="result-item error-item">❌ Element ID <code>#${id}</code> not found in DOM</div>`);
+                } else {
+                    const display = getComputedStyle(el).display;
+                    results.push(`<div class="result-item success-item">✅ <code>#${id}</code> exists (display: ${display})</div>`);
+                }
+            });
+
+            // Check for class/id mismatch
+            const classSelectors = ['.pending-badge', '.admin-section', '.balance-card'];
+            classSelectors.forEach(cls => {
+                const count = document.querySelectorAll(cls).length;
+                if (count === 0) {
+                    results.push(`<div class="result-item warning-item">⚠️ <code>${cls}</code> - No elements in current page (may be in SPA views)</div>`);
+                } else {
+                    results.push(`<div class="result-item success-item">✅ <code>${cls}</code> found ${count} element(s)</div>`);
+                }
+            });
+
+            document.getElementById('html-structure-result').innerHTML = results.join('');
+        }
+
+        // ========================================
+        // 4. ตรวจสอบ Media Queries
+        // ========================================
+        function checkMediaQueries() {
+            const results = [];
+            const screenWidth = window.innerWidth;
+
+            results.push(`<div class="result-item success-item">📱 Current screen width: <strong>${screenWidth}px</strong></div>`);
+
+            const mediaQueries = [
+                { query: '(max-width: 320px)', name: 'Very Small Phones' },
+                { query: '(max-width: 360px)', name: 'Small Phones' },
+                { query: '(max-width: 375px)', name: 'iPhone SE' },
+                { query: '(max-width: 480px)', name: 'Standard Mobile' }
+            ];
+
+            mediaQueries.forEach(({ query, name }) => {
+                const mq = window.matchMedia(query);
+                if (mq.matches) {
+                    results.push(`<div class="result-item success-item">✅ ${name} ${query} - <strong>ACTIVE</strong></div>`);
+                } else {
+                    results.push(`<div class="result-item">⚪ ${name} ${query} - Inactive</div>`);
+                }
+            });
+
+            // Test responsive grid
+            const menuGrid = document.querySelector('.menu-grid');
+            if (menuGrid) {
+                const gridCols = getComputedStyle(menuGrid).gridTemplateColumns;
+                results.push(`<div class="result-item success-item">✅ .menu-grid columns: <code>${gridCols}</code></div>`);
+            }
+
+            document.getElementById('media-query-result').innerHTML = results.join('');
+        }
+
+        // ========================================
+        // 5. Test Element Rendering
+        // ========================================
+        function testElementRendering() {
+            const results = [];
+            const testContainer = document.querySelector('.test-container');
+            
+            // Test pending-badge visibility
+            const badge = testContainer.querySelector('.pending-badge');
+            if (badge) {
+                const badgeDisplay = getComputedStyle(badge).display;
+                const badgePosition = getComputedStyle(badge).position;
+                const badgeBg = getComputedStyle(badge).backgroundColor;
+                
+                results.push(`<div class="result-item success-item">
+                    ✅ .pending-badge rendered<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;display: ${badgeDisplay}<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;position: ${badgePosition}<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;background: ${badgeBg}
+                </div>`);
+
+                if (badgeDisplay === 'none') {
+                    results.push(`<div class="result-item error-item">❌ .pending-badge is hidden (display: none)</div>`);
+                }
+            }
+
+            // Test balance-card
+            const balanceCard = testContainer.querySelector('.balance-card');
+            if (balanceCard) {
+                const display = getComputedStyle(balanceCard).display;
+                const flexDirection = getComputedStyle(balanceCard).flexDirection;
+                results.push(`<div class="result-item success-item">
+                    ✅ .balance-card rendered<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;display: ${display}<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;flex-direction: ${flexDirection}
+                </div>`);
+            }
+
+            // Test admin-section
+            const adminSection = testContainer.querySelector('.admin-section');
+            if (adminSection) {
+                const display = getComputedStyle(adminSection).display;
+                results.push(`<div class="result-item success-item">
+                    ✅ .admin-section rendered (display: ${display})
+                </div>`);
+            }
+
+            document.getElementById('render-test-result').innerHTML = results.join('');
+        }
+
+        // ========================================
+        // 6. Browser Compatibility
+        // ========================================
+        function checkBrowserCompatibility() {
+            const results = [];
+            const ua = navigator.userAgent;
+
+            results.push(`<div class="result-item success-item">🌐 User Agent: <code>${ua}</code></div>`);
+
+            // Check LINE In-App Browser
+            if (ua.includes('Line')) {
+                results.push(`<div class="result-item success-item">✅ Running in LINE In-App Browser</div>`);
+            } else {
+                results.push(`<div class="result-item warning-item">⚠️ Not running in LINE Browser (expected for testing)</div>`);
+            }
+
+            // Check CSS features
+            const features = [
+                { name: 'CSS Grid', test: () => CSS.supports('display', 'grid') },
+                { name: 'CSS Flexbox', test: () => CSS.supports('display', 'flex') },
+                { name: 'CSS Variables', test: () => CSS.supports('--test', '1') },
+                { name: 'CSS calc()', test: () => CSS.supports('width', 'calc(100% - 10px)') }
+            ];
+
+            features.forEach(({ name, test }) => {
+                if (test()) {
+                    results.push(`<div class="result-item success-item">✅ ${name} supported</div>`);
+                } else {
+                    results.push(`<div class="result-item error-item">❌ ${name} NOT supported</div>`);
+                }
+            });
+
+            alert(results.join('\n\n'));
+        }
+
+        // ========================================
+        // Run All Tests
+        // ========================================
+        function runAllTests() {
+            console.log('🔍 Running all CSS/HTML tests...');
+            
+            const missingVars = checkCSSVariables();
+            checkCSSConflicts();
+            checkHTMLStructure();
+            checkMediaQueries();
+            testElementRendering();
+
+            console.log('✅ All tests completed');
+            
+            if (missingVars.length > 0) {
+                console.error('❌ Missing CSS Variables:', missingVars);
+            }
+        }
+
+        // ========================================
+        // Download Report
+        // ========================================
+        function downloadReport() {
+            const report = document.body.innerText;
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `css-debug-report-${new Date().toISOString()}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Run tests on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            runAllTests();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FOUC Test - Thaifoodie Staff</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .test-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        
+        .status.pass {
+            background: #e8f5e9;
+            color: #4caf50;
+        }
+        
+        .status.fail {
+            background: #ffebee;
+            color: #f44336;
+        }
+        
+        .status.pending {
+            background: #fff3e0;
+            color: #ff9800;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #ddd;
+        }
+        
+        .metric:last-child {
+            border-bottom: none;
+        }
+        
+        .metric-label {
+            color: #666;
+        }
+        
+        .metric-value {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+        
+        button:hover {
+            background: #45a049;
+        }
+        
+        button.secondary {
+            background: #2196F3;
+        }
+        
+        button.secondary:hover {
+            background: #1976D2;
+        }
+        
+        #console-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .timeline {
+            margin-top: 15px;
+        }
+        
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .timeline-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4CAF50;
+            margin-right: 10px;
+        }
+        
+        .timeline-dot.pending {
+            background: #ff9800;
+        }
+        
+        .timeline-text {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 FOUC Prevention Test Suite</h1>
+        
+        <div class="test-section">
+            <h2>📊 Page Load Metrics</h2>
+            <div class="metric">
+                <span class="metric-label">DOM Ready:</span>
+                <span class="metric-value" id="dom-ready">-</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">CSS Loaded:</span>
+                <span class="metric-value" id="css-loaded">-</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Page Fully Loaded:</span>
+                <span class="metric-value" id="page-loaded">-</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">App Ready Time:</span>
+                <span class="metric-value" id="app-ready">-</span>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>✅ FOUC Prevention Checks</h2>
+            <div id="fouc-checks"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🎯 Test Actions</h2>
+            <button onclick="testNormalLoad()">Test Normal Load</button>
+            <button onclick="testSlowNetwork()" class="secondary">Simulate Slow Network</button>
+            <button onclick="openSpaPage()" class="secondary">Open SPA Page</button>
+            <button onclick="clearResults()">Clear Results</button>
+        </div>
+        
+        <div class="test-section">
+            <h2>📝 Console Output</h2>
+            <div id="console-output"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>⏱️ Loading Timeline</h2>
+            <div class="timeline" id="timeline"></div>
+        </div>
+    </div>
+    
+    <script>
+        const startTime = performance.now();
+        let appReadyTime = null;
+        const logs = [];
+        
+        // Log function
+        function log(message, type = 'info') {
+            const timestamp = (performance.now() - startTime).toFixed(2);
+            const logMessage = `[${timestamp}ms] ${message}`;
+            logs.push({ message: logMessage, type, timestamp });
+            updateConsole();
+            console.log(logMessage);
+        }
+        
+        function updateConsole() {
+            const output = document.getElementById('console-output');
+            output.innerHTML = logs.map(l => l.message).join('\n');
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        // Performance measurements
+        window.addEventListener('DOMContentLoaded', () => {
+            const domTime = performance.timing.domContentLoadedEventEnd - performance.timing.navigationStart;
+            document.getElementById('dom-ready').textContent = domTime + ' ms';
+            log(`DOM Ready: ${domTime}ms`, 'success');
+            addTimelineItem('DOM Ready', false);
+        });
+        
+        window.addEventListener('load', async () => {
+            const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+            document.getElementById('page-loaded').textContent = loadTime + ' ms';
+            log(`Page Fully Loaded: ${loadTime}ms`, 'success');
+            addTimelineItem('Page Fully Loaded', false);
+            
+            // Check CSS load time
+            const cssResource = performance.getEntriesByType('resource').find(r => r.name.includes('style.css'));
+            if (cssResource) {
+                document.getElementById('css-loaded').textContent = cssResource.duration.toFixed(2) + ' ms';
+                log(`CSS Loaded: ${cssResource.duration.toFixed(2)}ms`, 'success');
+            }
+            
+            // Run FOUC checks (async)
+            await runFOUCChecks();
+        });
+        
+        // FOUC Prevention Checks
+        async function runFOUCChecks() {
+            // Fetch spa.html to check its content
+            let spaHtml = '';
+            try {
+                const response = await fetch('/spa.html');
+                spaHtml = await response.text();
+            } catch (e) {
+                log('Failed to fetch spa.html for testing', 'error');
+            }
+            
+            const checks = [
+                {
+                    name: 'Critical CSS Inline',
+                    test: () => {
+                        // Check if spa.html has inline critical CSS
+                        return spaHtml.includes('.view-loading') && 
+                               spaHtml.includes('.loading-spinner') &&
+                               spaHtml.includes('body.app-ready');
+                    }
+                },
+                {
+                    name: 'Loading Spinner Visible',
+                    test: () => {
+                        // Check if spa.html has loading spinner styles
+                        return spaHtml.includes('.view-loading {') && 
+                               spaHtml.includes('animation: spin');
+                    }
+                },
+                {
+                    name: 'App Ready Class',
+                    test: () => {
+                        // Check if body.app-ready mechanism exists in spa.html
+                        return spaHtml.includes('body.app-ready') ||
+                               spaHtml.includes('classList.add(\'app-ready\')');
+                    }
+                },
+                {
+                    name: 'Preconnect to Fonts',
+                    test: () => {
+                        // Check if spa.html has preconnect links
+                        return spaHtml.includes('rel="preconnect"') && 
+                               spaHtml.includes('fonts.googleapis.com');
+                    }
+                },
+                {
+                    name: 'CSS Preload',
+                    test: () => {
+                        // Check if spa.html has CSS preload
+                        return spaHtml.includes('rel="preload"') && 
+                               spaHtml.includes('style.css');
+                    }
+                }
+            ];
+            
+            const container = document.getElementById('fouc-checks');
+            container.innerHTML = checks.map(check => {
+                const passed = check.test();
+                const status = passed ? 'pass' : 'fail';
+                const statusText = passed ? '✅ PASS' : '❌ FAIL';
+                
+                log(`Check: ${check.name} - ${statusText}`);
+                
+                return `
+                    <div class="metric">
+                        <span class="metric-label">${check.name}</span>
+                        <span class="status ${status}">${statusText}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Timeline
+        function addTimelineItem(text, pending = false) {
+            const timeline = document.getElementById('timeline');
+            const item = document.createElement('div');
+            item.className = 'timeline-item';
+            item.innerHTML = `
+                <div class="timeline-dot ${pending ? 'pending' : ''}"></div>
+                <div class="timeline-text">${text}</div>
+            `;
+            timeline.appendChild(item);
+        }
+        
+        // Test Actions
+        function testNormalLoad() {
+            log('Testing normal load...', 'info');
+            window.location.reload();
+        }
+        
+        function testSlowNetwork() {
+            alert('Open Chrome DevTools → Network → Throttling → Slow 3G, then reload the page');
+            log('Slow network test: Please enable Slow 3G in DevTools', 'warning');
+        }
+        
+        function openSpaPage() {
+            log('Opening SPA page...', 'info');
+            window.open('/spa.html', '_blank');
+        }
+        
+        function clearResults() {
+            logs.length = 0;
+            updateConsole();
+            document.getElementById('timeline').innerHTML = '';
+            log('Results cleared', 'info');
+        }
+        
+        // Monitor for app-ready event (if in spa.html iframe)
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'class') {
+                    if (document.body.classList.contains('app-ready')) {
+                        appReadyTime = performance.now() - startTime;
+                        document.getElementById('app-ready').textContent = appReadyTime.toFixed(2) + ' ms';
+                        log(`App Ready: ${appReadyTime.toFixed(2)}ms`, 'success');
+                        addTimelineItem('App Ready', false);
+                    }
+                }
+            });
+        });
+        
+        if (document.body) {
+            observer.observe(document.body, { attributes: true });
+        }
+        
+        // Initial log
+        log('FOUC Test Suite Started', 'info');
+        addTimelineItem('Page Load Started', true);
+    </script>
+</body>
+</html>

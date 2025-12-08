@@ -20,17 +20,119 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     
-    <!-- Google Fonts -->
+    <!-- Google Fonts - Preconnect for faster loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Custom Styles -->
-    <link rel="stylesheet" href="/css/style.css">
+    <!-- Preload Critical CSS -->
+    <link rel="preload" href="/css/style.css?v=20251208" as="style">
+    
+    <!-- Custom Styles - Load immediately -->
+    <link rel="stylesheet" href="/css/style.css?v=20251208">
+    
+    <!-- DNS Prefetch for API calls -->
+    <link rel="dns-prefetch" href="https://static.line-scdn.net">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://unpkg.com">
+    
+    <!-- Critical CSS for preventing FOUC -->
+    <style>
+        /* Prevent Flash of Unstyled Content - Show loading immediately */
+        html {
+            background-color: #f5faf9;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Sarabun', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f5faf9;
+            /* Don't hide body - show loading spinner immediately */
+            opacity: 1;
+        }
+        
+        /* Loading container - always visible until app ready */
+        .view-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            gap: 16px;
+            padding: 20px;
+        }
+        
+        /* Loading spinner animation */
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #e8f2f0;
+            border-top-color: #4CAF50;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .view-loading p {
+            color: #5a706d;
+            font-size: 14px;
+            margin: 0;
+        }
+        
+        /* Hide app container initially - show after LIFF ready */
+        body:not(.app-ready) #app-container > *:not(.view-loading) {
+            display: none;
+        }
+        
+        /* Smooth fade-in when app is ready */
+        body.app-ready {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
 </head>
 <body>
     <!-- Main App Container -->
     <div class="container" id="app-container">
         <!-- Views will be rendered here -->
         <div class="view-loading">
+            <div class="loading-spinner"></div>
+            <p>กำลังโหลด...</p>
+        </div>
+    </div>
+    
+    <style>
+        .view-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            gap: 16px;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .today-label {
             font-size: 13px;
             opacity: 0.9;
             margin-bottom: 8px;
@@ -1525,10 +1627,32 @@
         .scanned-id {
             font-size: 12px;
             font-family: monospace;
-
-            <div class="loading-spinner"></div>
-        </div>
-    </div>
+        }
+    </style>
+    
+    <!-- App Initialization Script -->
+    <script>
+        // Version management
+        const APP_VERSION = '20251208';
+        const cachedVersion = localStorage.getItem('app_version');
+        if (cachedVersion !== APP_VERSION) {
+            console.log('[Cache] Clearing old version:', cachedVersion, '→', APP_VERSION);
+            localStorage.setItem('app_version', APP_VERSION);
+        }
+        
+        // Fallback: Show app anyway after 5 seconds if LIFF hangs
+        setTimeout(function() {
+            if (!document.body.classList.contains('app-ready')) {
+                console.warn('[FOUC] Fallback: Forcing app visibility after timeout');
+                document.body.classList.add('app-ready');
+            }
+        }, 5000);
+        
+        // Performance monitoring
+        window.addEventListener('load', function() {
+            console.log('[Performance] Page fully loaded at', performance.now().toFixed(2), 'ms');
+        });
+    </script>
     
     <!-- Core Scripts -->
     <script src="/js/logger.js"></script>

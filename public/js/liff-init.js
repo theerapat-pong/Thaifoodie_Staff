@@ -113,12 +113,21 @@ async function initializeLiff() {
         console.log('[LIFF] ✅ Employee verified:', verifyResult.employee.name);
 
         hideLoading();
+        
+        // Mark app as ready - removes FOUC
+        document.body.classList.add('app-ready');
+        console.log('[FOUC] App ready - body visible');
+        
         return true;
 
     } catch (error) {
         console.error('[LIFF] Initialization error:', error);
         window.liffState.error = error.message;
         hideLoading();
+        
+        // Show app anyway to display error message
+        document.body.classList.add('app-ready');
+        
         showError('ไม่สามารถเชื่อมต่อกับ LINE ได้: ' + error.message);
         return false;
     }
