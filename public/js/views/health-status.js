@@ -4,6 +4,7 @@
 
 const HealthStatusView = {
     name: 'health-status',
+    refreshInterval: null,
 
     async render() {
         return `
@@ -72,6 +73,9 @@ const HealthStatusView = {
                     <button class="btn btn-outline" onclick="HealthStatusView.loadHealthData()">
                         🔄 รีเฟรชข้อมูล
                     </button>
+                    <p class="text-muted text-sm mt-2" style="font-size: 12px;">
+                        ⏱️ อัปเดตอัตโนมัติทุก 5 วินาที
+                    </p>
                 </div>
             </div>
         `;
@@ -92,6 +96,30 @@ const HealthStatusView = {
         this.configureSectionsByRole(userRole);
         
         await this.loadHealthData();
+        
+        // Start auto-refresh every 5 seconds
+        this.startAutoRefresh();
+    },
+
+    startAutoRefresh() {
+        // Clear any existing interval
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+        }
+        
+        // Set up auto-refresh every 5 seconds
+        this.refreshInterval = setInterval(() => {
+            console.log('[HealthStatus] Auto-refreshing...');
+            this.loadHealthData();
+        }, 5000);
+    },
+
+    stopAutoRefresh() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+            this.refreshInterval = null;
+            console.log('[HealthStatus] Auto-refresh stopped');
+        }
     },
 
     async getUserRole() {
@@ -367,7 +395,8 @@ const HealthStatusView = {
     },
 
     destroy() {
-        // Cleanup if needed
+        // Stop auto-refresh when leaving the view
+        this.stopAutoRefresh();
     }
 };
 
