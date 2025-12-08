@@ -63,7 +63,10 @@ const SystemLogsView = {
                         </div>
                         <div class="card-body p-0">
                             <div id="logs-list">
-                                <div class="loading-spinner">กำลังโหลด...</div>
+                                <div class="loading-state">
+                                    <div class="spinner"></div>
+                                    <div class="loading-text">กำลังโหลดข้อมูล...</div>
+                                </div>
                             </div>
                         </div>
                     </div>
