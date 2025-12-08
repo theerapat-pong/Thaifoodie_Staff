@@ -51,14 +51,16 @@ api/liff/             # LIFF endpoints (serverless functions)
 ├── attendance/       # check-in, check-out, today, history
 ├── leave/           # request, quota, history, pending, cancel
 ├── advance/         # request, balance, history, pending, cancel
-├── user/profile.js
-└── admin/           # pending, approve, reject, employees, reset
+├── user/            # profile.js, work-location.js
+└── admin/           # pending, approve, reject, employees, reset, 
+                     # work-location, logs, system-logs, 
+                     # pending-checkins, approve-pending-checkin, reject-pending-checkin
 
 src/
 ├── config/line.js              # LINE Bot SDK config
 ├── lib/prisma.js               # Prisma singleton
 ├── modules/                    # Business logic (admin, attendance, leave, advance)
-├── services/                   # LINE API helpers, LIFF auth
+├── services/                   # LINE API helpers, LIFF auth, logger
 └── utils/                      # datetime, format, location, salary, validation
 
 public/
@@ -67,9 +69,25 @@ public/
 │   ├── liff-init.js           # LIFF SDK initialization
 │   ├── api.js                 # API wrapper functions
 │   ├── router.js              # Hash-based SPA router
-│   ├── app.js                 # App init + legacy URL redirects
-│   └── views/                 # SPA view modules (home, check-in, leave, etc.)
-└── css/style.css
+│   ├── app.js                 # App init + view registration
+│   ├── logger.js              # Client-side logging
+│   ├── time-format.js         # Time formatting utilities
+│   └── views/                 # SPA view modules:
+│       ├── home.js            # Main menu (role-based)
+│       ├── attendance.js      # Today's attendance status
+│       ├── check-in.js        # Quick check-in (GPS)
+│       ├── check-out.js       # Quick check-out
+│       ├── leave.js           # Leave request form
+│       ├── advance.js         # Advance request form
+│       ├── balance.js         # Balance summary
+│       ├── history.js         # Transaction history
+│       ├── cancel.js          # Cancel pending requests
+│       ├── admin.js           # Admin panel (tabs)
+│       ├── employees.js       # Employee management
+│       ├── settings.js        # User settings
+│       ├── health-status.js   # System health monitoring (ADMIN/DEV, auto-refresh 5s)
+│       └── system-logs.js     # System logs viewer (DEV only)
+└── css/style.css              # Mint Fresh theme
 ```
 
 ---
@@ -95,7 +113,27 @@ container.style.display = 'block';
 - **`check-in.js` / `check-out.js` (Quick Actions):** MUST auto-close with `liff.closeWindow()` after 2-3s
 - Use `setTimeout(() => liff.closeWindow(), 3000)` after success
 
-### 3. API Response Validation
+### 3. Loading UI Pattern
+**Problem:** Text and spinner rotate together, poor UX  
+**Solution:** Use structured loading state with separated elements
+
+```javascript
+// ❌ BAD: Text rotates with spinner
+<div class="loading-spinner">กำลังโหลด...</div>
+
+// ✅ GOOD: Separate spinner and text
+<div class="loading-state">
+  <div class="spinner"></div>
+  <div class="loading-text">กำลังโหลดข้อมูล...</div>
+</div>
+```
+
+**CSS automatically handles animation:**
+- `.spinner` rotates with keyframe animation
+- `.loading-text` stays static below
+- Uses Mint Fresh theme colors (`#4CAF50`, `rgba(0,0,0,0.1)`)
+
+### 4. API Response Validation
 **Always check data types before Prisma operations:**
 ```javascript
 // ❌ BAD: Runtime error if daily_salary is null
@@ -107,7 +145,7 @@ const wage = employee.daily_salary
   : 0;
 ```
 
-### 4. Check-out Flow
+### 5. Check-out Flow
 **MUST fetch current attendance before showing confirmation:**
 ```javascript
 // Fetch today's attendance to display check-in time
@@ -115,7 +153,7 @@ const response = await AttendanceAPI.getToday();
 // Then show modal with actual check-in time
 ```
 
-### 5. Location Tab System (OBSOLETE)
+### 6. Location Tab System (OBSOLETE)
 **The old `Location Tab` system is REMOVED:**
 - ❌ `api/liff/admin/approve-location.js` - DELETED
 - ❌ `api/liff/admin/reject-location.js` - DELETED
@@ -133,11 +171,14 @@ const response = await AttendanceAPI.getToday();
 export function render() {
   return `<div>My View HTML</div>`;
 }
-export function afterRender() {
-  // Setup event listeners, load data
+export async function init() {
+  // Called after view is rendered
+  // Setup event listeners, load data, start timers
 }
-export function cleanup() {
-  // Optional: cleanup timers, listeners
+export function destroy() {
+  // Called when leaving view
+  // Cleanup: stop timers, remove listeners, prevent memory leaks
+  // Example: clearInterval(this.refreshInterval)
 }
 ```
 2. Register in `public/js/app.js`:
@@ -145,6 +186,11 @@ export function cleanup() {
 import * as MyView from './views/my-view.js';
 router.register('my-view', MyView);
 ```
+
+**Important:** Always implement `destroy()` if view uses:
+- `setInterval()` / `setTimeout()`
+- Event listeners on window/document
+- WebSocket connections
 
 ### Adding a LIFF API Endpoint
 1. Create `api/liff/module/action.js`
@@ -171,6 +217,29 @@ npm run prisma:studio  # Open Prisma Studio
 - **LIFF Authentication:** All `/api/liff/*` endpoints use `authenticateRequest()` from `liff-auth.js`
 - **Role-Based Access:** `Employee.role` enum (STAFF, ADMIN, DEV) - check via `src/utils/roles.js`
 - **LINE Webhook Signature:** Verified in `src/middleware/lineSignature.js`
+
+---
+
+## 📊 System Monitoring & Logging
+
+### Health Status View (`health-status.js`)
+- **Access:** STAFF see limited view, ADMIN/DEV see full view
+- **Auto-refresh:** Every 5 seconds
+- **STAFF View:** Status overview + API endpoints only
+- **ADMIN/DEV View:** + Database status + Recent activity
+- **API:** `/api/health` returns `{status, timestamp, components, response_time}`
+- **Cleanup:** Auto-refresh stops when leaving view (prevent memory leak)
+
+### System Logs View (`system-logs.js`)
+- **Access:** DEV role only
+- **Features:** Pagination, category filtering, log detail expansion
+- **API:** `/api/liff/admin/system-logs`
+- **Data Source:** `SystemLog` table
+
+### Bot Commands (Removed)
+- ❌ `health` command - Removed (use Health Status view)
+- ❌ `log/logs` command - Removed (use System Logs view)
+- ✅ `id` command - Shows QR code with Mint Fresh theme
 
 ---
 
