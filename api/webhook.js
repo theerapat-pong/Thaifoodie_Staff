@@ -11,14 +11,11 @@ const { handleLeaveApproval } = require('../src/modules/leave');
 const { handleAdvanceApproval } = require('../src/modules/advance');
 const { hasAdminPrivileges, hasDevPrivileges } = require('../src/utils/roles');
 const logger = require('../src/services/logger');
-const { createHealthFlexMessage, createSystemLogFlexMessage } = require('../src/services/flex-messages');
 
 const prisma = require('../src/lib/prisma');
 
 // LIFF IDs
 const LIFF_ID_MAIN = process.env.LIFF_ID || '2008633012-xKvPGV8v'; // Main app
-const LIFF_ID_STATUS = process.env.LIFF_ID_STATUS || '2008633012-L8e7VAme'; // Status health
-const LIFF_ID_LOGS = process.env.LIFF_ID_LOGS || '2008633012-J541Oqz4'; // System logs
 
 /**
  * Vercel Serverless Function Handler
@@ -109,78 +106,6 @@ async function handleAdminCommands(replyToken, userId, groupId, text) {
     // =====================================
     // Commands in 1-on-1 chat only
     // =====================================
-
-    // คำสั่ง Health Status (All Employees)
-    if (textLower === 'health') {
-        try {
-            // Check if employee exists
-            const employee = await prisma.employee.findUnique({ 
-                where: { id: userId },
-                select: { id: true, name: true, role: true }
-            });
-
-            if (!employee) {
-                // Employee not found - don't reply
-                return;
-            }
-
-            // Generate LIFF URL for status page (separate subdomain)
-            const statusUrl = `https://liff.line.me/${LIFF_ID_STATUS}`;
-            const flexMessage = createHealthFlexMessage(statusUrl);
-            
-            await replyMessage(replyToken, flexMessage);
-            
-            await logger.info(
-                'Webhook',
-                'Health-Command',
-                `Health status requested by ${employee.name}`,
-                { userId, role: employee.role }
-            );
-        } catch (error) {
-            console.error('[Webhook] Health command error:', error);
-        }
-        return;
-    }
-
-    // =====================================
-    // คำสั่ง System Logs (DEV Only)
-    // =====================================
-    if (textLower === 'log' || textLower === 'logs') {
-        try {
-            // Check if employee exists and has DEV role
-            const employee = await prisma.employee.findUnique({ 
-                where: { id: userId },
-                select: { id: true, name: true, role: true }
-            });
-
-            if (!employee) {
-                // Employee not found - don't reply
-                return;
-            }
-
-            if (!hasDevPrivileges(employee.role)) {
-                // Not DEV role - send error message
-                await replyMessage(replyToken, '🔒 คำสั่งนี้ใช้ได้เฉพาะ Developer เท่านั้น');
-                return;
-            }
-
-            // Generate LIFF URL for systemlog page (separate subdomain)
-            const logUrl = `https://liff.line.me/${LIFF_ID_LOGS}`;
-            const flexMessage = createSystemLogFlexMessage(logUrl);
-            
-            await replyMessage(replyToken, flexMessage);
-            
-            await logger.info(
-                'Webhook',
-                'Log-Command',
-                `System logs requested by ${employee.name}`,
-                { userId, role: employee.role }
-            );
-        } catch (error) {
-            console.error('[Webhook] Log command error:', error);
-        }
-        return;
-    }
 
     // =====================================
     // คำสั่ง Debug (Admin Only)
