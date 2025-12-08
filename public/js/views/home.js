@@ -68,7 +68,7 @@ const HomeView = {
                             <div class="menu-label">จัดการคำขอ</div>
                             <span class="pending-badge" id="admin-pending-badge" style="display: none;">0</span>
                         </a>
-                        <a href="#health-status" class="menu-item">
+                        <a href="#health-status" class="menu-item" id="menu-health-status" style="display: none;">
                             <div class="menu-icon">🏥</div>
                             <div class="menu-label">สถานะระบบ</div>
                         </a>
@@ -174,6 +174,12 @@ const HomeView = {
 
         if (isAdminRole) {
             document.getElementById('admin-section').style.display = 'block';
+            
+            // Show Health Status menu for ADMIN and DEV roles
+            const healthStatusMenu = document.getElementById('menu-health-status');
+            if (healthStatusMenu) {
+                healthStatusMenu.style.display = 'block';
+            }
             
             // Show System Logs menu only for DEV role
             if (isDevRole) {
