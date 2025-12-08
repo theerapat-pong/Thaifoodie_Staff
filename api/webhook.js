@@ -180,67 +180,95 @@ async function handlePostback(replyToken, userId, event) {
  * สำหรับให้ Admin สแกนเพิ่มพนักงานใหม่
  */
 function buildUserIdQRCode(userId) {
-    // ใช้ Google Charts API สร้าง QR Code
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(userId)}`;
+    // ใช้ QR Server API สร้าง QR Code
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(userId)}&bgcolor=FFFFFF&margin=10`;
     
     return {
         type: 'flex',
-        altText: '🆔 Your LINE User ID (สำหรับลงทะเบียนพนักงาน)',
+        altText: '🆔 LINE User ID - ลงทะเบียนพนักงาน',
         contents: {
             type: 'bubble',
-            size: 'kilo',
+            size: 'mega',
             header: {
                 type: 'box',
                 layout: 'vertical',
                 contents: [
                     {
-                        type: 'text',
-                        text: '🆔 LINE User ID',
-                        weight: 'bold',
-                        size: 'lg',
-                        color: '#00B900'
-                    },
-                    {
-                        type: 'text',
-                        text: 'สำหรับลงทะเบียนเป็นพนักงาน',
-                        size: 'xs',
-                        color: '#888888',
-                        margin: 'sm'
+                        type: 'box',
+                        layout: 'vertical',
+                        contents: [
+                            {
+                                type: 'text',
+                                text: '🆔 LINE User ID',
+                                weight: 'bold',
+                                size: 'xl',
+                                color: '#FFFFFF'
+                            },
+                            {
+                                type: 'text',
+                                text: 'สำหรับลงทะเบียนเป็นพนักงาน',
+                                size: 'sm',
+                                color: '#FFFFFF',
+                                margin: 'sm',
+                                wrap: true
+                            }
+                        ]
                     }
                 ],
-                backgroundColor: '#F5F5F5',
-                paddingAll: '16px'
+                paddingAll: '20px',
+                backgroundColor: '#4CAF50',
+                spacing: 'md',
+                paddingTop: '22px'
             },
             hero: {
-                type: 'image',
-                url: qrCodeUrl,
-                size: 'full',
-                aspectRatio: '1:1',
-                aspectMode: 'fit',
-                backgroundColor: '#FFFFFF'
+                type: 'box',
+                layout: 'vertical',
+                contents: [
+                    {
+                        type: 'image',
+                        url: qrCodeUrl,
+                        size: 'full',
+                        aspectRatio: '1:1',
+                        aspectMode: 'cover'
+                    }
+                ],
+                backgroundColor: '#FFFFFF',
+                paddingAll: '0px'
             },
             body: {
                 type: 'box',
                 layout: 'vertical',
                 contents: [
                     {
-                        type: 'text',
-                        text: 'User ID ของคุณ:',
-                        size: 'xs',
-                        color: '#888888'
-                    },
-                    {
-                        type: 'text',
-                        text: userId.substring(0, 16) + '...',
-                        size: 'sm',
-                        weight: 'bold',
-                        color: '#333333',
-                        margin: 'xs',
-                        wrap: true
+                        type: 'box',
+                        layout: 'vertical',
+                        contents: [
+                            {
+                                type: 'text',
+                                text: 'User ID ของคุณ',
+                                size: 'xs',
+                                color: '#7a9894',
+                                weight: 'bold'
+                            },
+                            {
+                                type: 'text',
+                                text: userId,
+                                size: 'xs',
+                                color: '#2c3e3c',
+                                margin: 'xs',
+                                wrap: true,
+                                style: 'normal'
+                            }
+                        ],
+                        backgroundColor: '#f5faf9',
+                        paddingAll: '12px',
+                        cornerRadius: '8px',
+                        margin: 'none'
                     },
                     {
                         type: 'separator',
-                        margin: 'lg'
+                        margin: 'lg',
+                        color: '#e8f2f0'
                     },
                     {
                         type: 'box',
@@ -249,54 +277,132 @@ function buildUserIdQRCode(userId) {
                         contents: [
                             {
                                 type: 'text',
-                                text: '📌 วิธีใช้งาน',
+                                text: '📋 วิธีใช้งาน',
                                 size: 'sm',
                                 weight: 'bold',
-                                color: '#00B900'
+                                color: '#4CAF50',
+                                margin: 'none'
                             },
                             {
-                                type: 'text',
-                                text: '1. แสดง QR Code นี้ให้ Admin',
-                                size: 'xs',
-                                color: '#666666',
-                                margin: 'sm'
-                            },
-                            {
-                                type: 'text',
-                                text: '2. Admin สแกนเพื่อเพิ่มคุณเข้าระบบ',
-                                size: 'xs',
-                                color: '#666666',
-                                margin: 'xs'
-                            },
-                            {
-                                type: 'text',
-                                text: '3. เริ่มใช้งาน Thaifoodie ได้เลย!',
-                                size: 'xs',
-                                color: '#666666',
-                                margin: 'xs'
+                                type: 'box',
+                                layout: 'vertical',
+                                margin: 'md',
+                                spacing: 'sm',
+                                contents: [
+                                    {
+                                        type: 'box',
+                                        layout: 'horizontal',
+                                        contents: [
+                                            {
+                                                type: 'text',
+                                                text: '1.',
+                                                size: 'xs',
+                                                color: '#5a706d',
+                                                flex: 0,
+                                                margin: 'none'
+                                            },
+                                            {
+                                                type: 'text',
+                                                text: 'แสดง QR Code ให้ Admin ของคุณ',
+                                                size: 'xs',
+                                                color: '#5a706d',
+                                                flex: 1,
+                                                margin: 'sm',
+                                                wrap: true
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        type: 'box',
+                                        layout: 'horizontal',
+                                        contents: [
+                                            {
+                                                type: 'text',
+                                                text: '2.',
+                                                size: 'xs',
+                                                color: '#5a706d',
+                                                flex: 0
+                                            },
+                                            {
+                                                type: 'text',
+                                                text: 'Admin สแกนเพื่อเพิ่มคุณเข้าระบบ',
+                                                size: 'xs',
+                                                color: '#5a706d',
+                                                flex: 1,
+                                                margin: 'sm',
+                                                wrap: true
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        type: 'box',
+                                        layout: 'horizontal',
+                                        contents: [
+                                            {
+                                                type: 'text',
+                                                text: '3.',
+                                                size: 'xs',
+                                                color: '#5a706d',
+                                                flex: 0
+                                            },
+                                            {
+                                                type: 'text',
+                                                text: 'เริ่มใช้งานระบบได้ทันที! 🎉',
+                                                size: 'xs',
+                                                color: '#5a706d',
+                                                flex: 1,
+                                                margin: 'sm',
+                                                wrap: true
+                                            }
+                                        ]
+                                    }
+                                ]
                             }
-                        ]
+                        ],
+                        paddingAll: '0px'
                     }
                 ],
-                paddingAll: '16px'
+                paddingAll: '20px',
+                spacing: 'md'
             },
             footer: {
                 type: 'box',
                 layout: 'vertical',
                 contents: [
                     {
-                        type: 'text',
-                        text: '🍜 Thaifoodie Staff Management',
-                        size: 'xs',
-                        color: '#AAAAAA',
-                        align: 'center'
+                        type: 'separator',
+                        color: '#e8f2f0'
+                    },
+                    {
+                        type: 'box',
+                        layout: 'horizontal',
+                        contents: [
+                            {
+                                type: 'text',
+                                text: '🍜',
+                                size: 'sm',
+                                flex: 0
+                            },
+                            {
+                                type: 'text',
+                                text: 'Thaifoodie Staff Management',
+                                size: 'xs',
+                                color: '#7a9894',
+                                flex: 1,
+                                margin: 'sm'
+                            }
+                        ],
+                        margin: 'md'
                     }
                 ],
-                paddingAll: '12px'
+                paddingAll: '16px'
             },
             styles: {
                 hero: {
                     backgroundColor: '#FFFFFF'
+                },
+                footer: {
+                    backgroundColor: '#f5faf9'
                 }
             }
         }
