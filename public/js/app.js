@@ -24,6 +24,8 @@ async function initializeApp() {
         router.register('history', HistoryView);
         router.register('employees', EmployeesView);  // Admin - จัดการพนักงาน
         router.register('work-location', WorkLocationView);  // Admin - ตั้งค่าตำแหน่งร้าน
+        router.register('health-status', HealthStatusView);  // System Monitor - Health Status
+        router.register('system-logs', SystemLogsView);  // System Monitor - Logs (DEV only)
         console.log('[App] Routes registered:', router.routes.size);
         
         // Handle legacy URLs (redirect old MPA paths to hash routes)

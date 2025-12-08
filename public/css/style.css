@@ -4496,3 +4496,298 @@ button:active,
 /* Modal Utilities */
 body.modal-open { overflow: hidden !important; }
 body.modal-open #app-container { overflow: hidden !important; }
+
+/* ========================================
+   DEV Badge & System Monitor Styles
+   ======================================== */
+
+/* DEV Badge */
+.badge-dev {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+/* Health Status View */
+.view-health-status .status-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    border-radius: var(--radius);
+    background: var(--card-bg);
+}
+
+.view-health-status .status-card.status-success {
+    background: var(--success-light);
+    border: 2px solid var(--success);
+}
+
+.view-health-status .status-card.status-danger {
+    background: var(--danger-light);
+    border: 2px solid var(--danger);
+}
+
+.view-health-status .status-icon {
+    font-size: 48px;
+    line-height: 1;
+}
+
+.view-health-status .status-info {
+    flex: 1;
+}
+
+.view-health-status .status-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.view-health-status .status-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.view-health-status .info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.view-health-status .info-item {
+    background: rgba(76, 175, 80, 0.05);
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    text-align: center;
+}
+
+.view-health-status .info-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.view-health-status .info-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.view-health-status .db-status {
+    text-align: center;
+}
+
+.view-health-status .status-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.view-health-status .badge-success {
+    background: var(--success-light);
+    color: var(--success);
+}
+
+.view-health-status .badge-danger {
+    background: var(--danger-light);
+    color: var(--danger);
+}
+
+.view-health-status .api-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.view-health-status .api-item:last-child {
+    border-bottom: none;
+}
+
+.view-health-status .api-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.view-health-status .api-status {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.view-health-status .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.view-health-status .status-dot.status-success {
+    background: var(--success);
+}
+
+.view-health-status .status-dot.status-danger {
+    background: var(--danger);
+}
+
+/* System Logs View */
+.view-system-logs .filter-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+}
+
+.view-system-logs .tab-btn {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.view-system-logs .tab-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.view-system-logs .tab-btn:hover {
+    background: var(--primary-light);
+    border-color: var(--primary);
+}
+
+.view-system-logs .log-item {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-light);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.view-system-logs .log-item:hover {
+    background: var(--bg);
+}
+
+.view-system-logs .log-item:last-child {
+    border-bottom: none;
+}
+
+.view-system-logs .log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.view-system-logs .log-category {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.view-system-logs .log-level {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.view-system-logs .badge-info {
+    background: var(--info-light);
+    color: var(--info);
+}
+
+.view-system-logs .badge-warning {
+    background: var(--warning-light);
+    color: var(--warning-text);
+}
+
+.view-system-logs .badge-danger {
+    background: var(--danger-light);
+    color: var(--danger);
+}
+
+.view-system-logs .badge-secondary {
+    background: #e0e0e0;
+    color: #666;
+}
+
+.view-system-logs .log-message {
+    font-size: 14px;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.view-system-logs .log-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.view-system-logs .log-details {
+    margin-top: 12px;
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    overflow-x: auto;
+}
+
+.view-system-logs .log-details pre {
+    margin: 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-family: 'Courier New', monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.view-system-logs .pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    margin-top: 16px;
+}
+
+.view-system-logs .empty-state {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--text-muted);
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    text-align: center;
+    padding: 24px;
+    color: var(--text-muted);
+    font-size: 14px;
+}

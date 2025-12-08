@@ -59,6 +59,20 @@ const HomeView = {
                     </a>
                 </div>
                 
+                <!-- System Monitor Section (for all users) -->
+                <div class="menu-section-title">ติดตามระบบ</div>
+                <div class="menu-grid">
+                    <a href="#health-status" class="menu-item">
+                        <div class="menu-icon">🏥</div>
+                        <div class="menu-label">สถานะระบบ</div>
+                    </a>
+                    <a href="#system-logs" class="menu-item" id="menu-system-logs" style="display: none;">
+                        <div class="menu-icon">🔧</div>
+                        <div class="menu-label">System Logs</div>
+                        <span class="badge-dev">DEV</span>
+                    </a>
+                </div>
+                
                 <!-- Admin Section (hidden by default) -->
                 <div class="admin-section" id="admin-section" style="display: none;">
                     <div class="menu-section-title">สำหรับผู้ดูแลระบบ</div>
@@ -147,6 +161,7 @@ const HomeView = {
         const { employee, balance, pendingRequests } = profileData.data;
 
         const isAdminRole = ['ADMIN', 'DEV'].includes(employee.role);
+        const isDevRole = employee.role === 'DEV';
         const roleText = isAdminRole ? 'ผู้ดูแลระบบ' : 'พนักงาน';
         document.getElementById('user-role').textContent = 
             employee.department ? `${roleText} • ${employee.department}` : roleText;
@@ -160,6 +175,14 @@ const HomeView = {
             pendingBadge.style.display = 'flex';
         } else {
             pendingBadge.style.display = 'none';
+        }
+
+        // Show System Logs menu only for DEV role
+        if (isDevRole) {
+            const systemLogsMenu = document.getElementById('menu-system-logs');
+            if (systemLogsMenu) {
+                systemLogsMenu.style.display = 'block';
+            }
         }
 
         if (isAdminRole) {

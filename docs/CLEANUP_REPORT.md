@@ -179,7 +179,28 @@ git restore --source=v3.0-pre-cleanup public/index.html
 
 ---
 
-**Status:** ✅ CLEANUP COMPLETED  
+**Status:** ✅ COMPLETED + HOTFIX DEPLOYED  
 **Risk Level:** 🟢 Low (ไฟล์ทั้งหมดเป็น legacy/debug files)  
 **Rollback Available:** ✅ Yes (git tag: v3.0-pre-cleanup)  
-**Next Action:** Deploy to production และทดสอบระบบ
+**Next Action:** ทดสอบระบบหลัง hotfix deployment
+
+---
+
+## 🔧 Post-Deployment Hotfix (Dec 8, 2025)
+
+### Issue Found
+- **Error:** `GET https://staff.thaifoodie.site/ 404 (Not Found)`
+- **Cause:** Missing explicit root path rewrite in `vercel.json`
+- **Impact:** Root URL returning 404, but hash routes worked fine
+
+### Fix Applied
+- **Commit:** 5e36e43
+- **Change:** Added `{ "source": "/", "destination": "/spa.html" }` to rewrites
+- **Status:** ✅ Deployed to production
+
+### Testing Checklist
+- [ ] Open `https://staff.thaifoodie.site/` → Should load spa.html (not 404)
+- [ ] Verify no console errors
+- [ ] Test hash routes still work (`/#home`, `/#check-in`, etc.)
+- [ ] Verify `statushealth.thaifoodie.site` still works
+- [ ] Verify `systemlog.thaifoodie.site` still works

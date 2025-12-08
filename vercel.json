@@ -29,7 +29,7 @@
                     "value": "systemlog.thaifoodie.site"
                 }
             ],
-            "destination": "/systemlog.html"
+            "destination": "/spa.html#system-logs"
         },
         {
             "source": "/",
@@ -39,13 +39,13 @@
                     "value": "statushealth.thaifoodie.site"
                 }
             ],
-            "destination": "/status.html"
+            "destination": "/spa.html#health-status"
         },
         { "source": "/", "destination": "/spa.html" },
         { "source": "/api/:path*", "destination": "/api/:path*" },
         { "source": "/spa.html", "destination": "/spa.html" },
-        { "source": "/status.html", "destination": "/status.html" },
-        { "source": "/systemlog.html", "destination": "/systemlog.html" },
+        { "source": "/status.html", "destination": "/spa.html#health-status" },
+        { "source": "/systemlog.html", "destination": "/spa.html#system-logs" },
         { "source": "/css/:path*", "destination": "/css/:path*" },
         { "source": "/js/:path*", "destination": "/js/:path*" },
         { "source": "/:path*", "destination": "/spa.html" }
