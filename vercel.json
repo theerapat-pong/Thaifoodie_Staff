@@ -41,6 +41,7 @@
             ],
             "destination": "/status.html"
         },
+        { "source": "/", "destination": "/spa.html" },
         { "source": "/api/:path*", "destination": "/api/:path*" },
         { "source": "/spa.html", "destination": "/spa.html" },
         { "source": "/status.html", "destination": "/status.html" },
