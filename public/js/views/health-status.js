@@ -21,7 +21,10 @@ const HealthStatusView = {
                         <h3>ภาพรวมระบบ</h3>
                     </div>
                     <div class="card-body" id="status-overview">
-                        <div class="loading-spinner">กำลังโหลด...</div>
+                        <div class="loading-state">
+                            <div class="spinner"></div>
+                            <div class="loading-text">กำลังโหลดข้อมูล...</div>
+                        </div>
                     </div>
                 </div>
 
@@ -31,7 +34,10 @@ const HealthStatusView = {
                         <h3>📊 ฐานข้อมูล</h3>
                     </div>
                     <div class="card-body" id="database-status">
-                        <div class="loading-spinner">กำลังโหลด...</div>
+                        <div class="loading-state">
+                            <div class="spinner"></div>
+                            <div class="loading-text">กำลังโหลดข้อมูล...</div>
+                        </div>
                     </div>
                 </div>
 
@@ -41,7 +47,10 @@ const HealthStatusView = {
                         <h3>🔌 API Endpoints</h3>
                     </div>
                     <div class="card-body" id="api-health">
-                        <div class="loading-spinner">กำลังโหลด...</div>
+                        <div class="loading-state">
+                            <div class="spinner"></div>
+                            <div class="loading-text">กำลังโหลดข้อมูล...</div>
+                        </div>
                     </div>
                 </div>
 
@@ -51,7 +60,10 @@ const HealthStatusView = {
                         <h3>📈 กิจกรรมล่าสุด (24 ชม.)</h3>
                     </div>
                     <div class="card-body" id="recent-activity">
-                        <div class="loading-spinner">กำลังโหลด...</div>
+                        <div class="loading-state">
+                            <div class="spinner"></div>
+                            <div class="loading-text">กำลังโหลดข้อมูล...</div>
+                        </div>
                     </div>
                 </div>
 
