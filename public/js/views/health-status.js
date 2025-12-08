@@ -25,8 +25,8 @@ const HealthStatusView = {
                     </div>
                 </div>
 
-                <!-- Database Status -->
-                <div class="card mb-3">
+                <!-- Database Status (ADMIN/DEV only) -->
+                <div class="card mb-3" id="database-section" style="display: none;">
                     <div class="card-header">
                         <h3>📊 ฐานข้อมูล</h3>
                     </div>
@@ -45,8 +45,8 @@ const HealthStatusView = {
                     </div>
                 </div>
 
-                <!-- Recent Activity -->
-                <div class="card mb-3">
+                <!-- Recent Activity (ADMIN/DEV only) -->
+                <div class="card mb-3" id="recent-activity-section" style="display: none;">
                     <div class="card-header">
                         <h3>📈 กิจกรรมล่าสุด (24 ชม.)</h3>
                     </div>
@@ -68,30 +68,43 @@ const HealthStatusView = {
     async init() {
         console.log('[HealthStatus] Loading health status...');
         
-        // Check access permission - ADMIN or DEV only
-        const hasAccess = await this.checkAccess();
+        // Get user role for permission check
+        const userRole = await this.getUserRole();
         
-        if (!hasAccess) {
+        if (!userRole) {
             this.showAccessDenied();
             return;
         }
         
+        // Show/hide sections based on role
+        this.configureSectionsByRole(userRole);
+        
         await this.loadHealthData();
     },
 
-    async checkAccess() {
+    async getUserRole() {
         try {
-            // Get user profile to check role
             const response = await UserAPI.getProfile();
             if (response.success && response.data) {
-                const userRole = response.data.employee.role;
-                return ['ADMIN', 'DEV'].includes(userRole);
+                return response.data.employee.role;
             }
-            return false;
+            return null;
         } catch (error) {
             console.error('[HealthStatus] Access check error:', error);
-            return false;
+            return null;
         }
+    },
+
+    configureSectionsByRole(role) {
+        // ADMIN and DEV see all sections
+        if (['ADMIN', 'DEV'].includes(role)) {
+            const databaseSection = document.getElementById('database-section');
+            const recentActivitySection = document.getElementById('recent-activity-section');
+            
+            if (databaseSection) databaseSection.style.display = 'block';
+            if (recentActivitySection) recentActivitySection.style.display = 'block';
+        }
+        // STAFF sees only overview and API health (database and recent activity hidden)
     },
 
     showAccessDenied() {
