@@ -126,29 +126,41 @@ const HealthStatusView = {
                 }
             });
 
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
             const data = await response.json();
             
-            if (data.success) {
-                this.renderStatusOverview(data.data);
-                this.renderDatabaseStatus(data.data);
-                this.renderAPIHealth(data.data);
-                this.renderRecentActivity(data.data);
+            // API returns direct status object, not wrapped in success/data
+            if (data && data.status) {
+                this.renderStatusOverview(data);
+                this.renderDatabaseStatus(data);
+                this.renderAPIHealth(data);
+                this.renderRecentActivity(data);
             } else {
-                throw new Error(data.message || 'ไม่สามารถโหลดข้อมูลได้');
+                throw new Error('Invalid response format');
             }
         } catch (error) {
             console.error('[HealthStatus] Load error:', error);
             showError('ไม่สามารถโหลดสถานะระบบได้');
+            
+            // Show error in UI
+            document.getElementById('status-overview').innerHTML = 
+                '<p class="text-danger">ไม่สามารถโหลดข้อมูลได้</p>';
         }
     },
 
     renderStatusOverview(data) {
         const container = document.getElementById('status-overview');
-        const { status, uptime, timestamp } = data;
+        const { status, timestamp, response_time, components } = data;
 
-        const statusClass = status === 'healthy' ? 'success' : 'danger';
-        const statusIcon = status === 'healthy' ? '✅' : '⚠️';
-        const statusText = status === 'healthy' ? 'ระบบทำงานปกติ' : 'ระบบมีปัญหา';
+        const statusClass = status === 'operational' ? 'success' : 'danger';
+        const statusIcon = status === 'operational' ? '✅' : '⚠️';
+        const statusText = status === 'operational' ? 'ระบบทำงานปกติ' : 
+                          status === 'degraded' ? 'ระบบมีปัญหาบางส่วน' : 'ระบบมีปัญหา';
+
+        const uptime = components?.server?.uptime || 0;
 
         container.innerHTML = `
             <div class="status-card status-${statusClass}">
@@ -164,8 +176,16 @@ const HealthStatusView = {
                     <div class="info-value">${this.formatUptime(uptime)}</div>
                 </div>
                 <div class="info-item">
+                    <div class="info-label">Response Time</div>
+                    <div class="info-value">${response_time || '-'}</div>
+                </div>
+                <div class="info-item">
                     <div class="info-label">อัพเดทล่าสุด</div>
                     <div class="info-value">${this.formatTime(timestamp)}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Status</div>
+                    <div class="info-value">${status.toUpperCase()}</div>
                 </div>
             </div>
         `;
@@ -173,38 +193,47 @@ const HealthStatusView = {
 
     renderDatabaseStatus(data) {
         const container = document.getElementById('database-status');
-        const { database } = data;
-
-        if (!database) {
+        const { components } = data;
+        
+        if (!components || !components.database) {
             container.innerHTML = '<p class="text-muted">ไม่มีข้อมูล</p>';
             return;
         }
 
-        const statusIcon = database.connected ? '✅' : '❌';
-        const statusText = database.connected ? 'เชื่อมต่อแล้ว' : 'ไม่สามารถเชื่อมต่อ';
+        const db = components.database;
+        const statusIcon = db.status === 'operational' ? '✅' : '❌';
+        const statusText = db.status === 'operational' ? 'เชื่อมต่อแล้ว' : 'ไม่สามารถเชื่อมต่อ';
+        const statusClass = db.status === 'operational' ? 'success' : 'danger';
+
+        // Extract counts from components
+        const attendance = components.attendance_system;
+        const leave = components.leave_system;
+        const advance = components.advance_system;
 
         container.innerHTML = `
             <div class="db-status mb-3">
-                <span class="status-badge ${database.connected ? 'badge-success' : 'badge-danger'}">
+                <span class="status-badge badge-${statusClass}">
                     ${statusIcon} ${statusText}
                 </span>
+                ${db.message ? `<p class="text-muted mt-2" style="font-size: 13px;">${db.message}</p>` : ''}
+                ${db.latency ? `<p class="text-muted" style="font-size: 12px;">Latency: ${db.latency}</p>` : ''}
             </div>
             <div class="info-grid">
                 <div class="info-item">
-                    <div class="info-label">👥 พนักงาน</div>
-                    <div class="info-value">${database.employees || 0} คน</div>
-                </div>
-                <div class="info-item">
                     <div class="info-label">⏰ บันทึกเวลา</div>
-                    <div class="info-value">${database.attendances || 0} รายการ</div>
+                    <div class="info-value">${attendance?.message || '-'}</div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">📅 ลางาน</div>
-                    <div class="info-value">${database.leaves || 0} รายการ</div>
+                    <div class="info-value">${leave?.message || '-'}</div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">💰 เบิกเงิน</div>
-                    <div class="info-value">${database.advances || 0} รายการ</div>
+                    <div class="info-value">${advance?.message || '-'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">🔌 Database</div>
+                    <div class="info-value">${db.status}</div>
                 </div>
             </div>
         `;
@@ -212,16 +241,35 @@ const HealthStatusView = {
 
     renderAPIHealth(data) {
         const container = document.getElementById('api-health');
-        const { apis } = data;
+        const { components } = data;
 
-        if (!apis || apis.length === 0) {
+        if (!components) {
             container.innerHTML = '<p class="text-muted">ไม่มีข้อมูล</p>';
             return;
         }
 
+        // Build API list from components
+        const apis = [
+            { name: 'Database', status: components.database?.status, component: components.database },
+            { name: 'LINE API', status: components.line_api?.status, component: components.line_api },
+            { name: 'Attendance System', status: components.attendance_system?.status, component: components.attendance_system },
+            { name: 'Leave System', status: components.leave_system?.status, component: components.leave_system },
+            { name: 'Advance System', status: components.advance_system?.status, component: components.advance_system },
+            { name: 'Cron Jobs', status: components.cron_job?.status, component: components.cron_job },
+            { name: 'Server', status: components.server?.status, component: components.server }
+        ];
+
         const html = apis.map(api => {
-            const statusIcon = api.status === 'ok' ? '✅' : '❌';
-            const statusClass = api.status === 'ok' ? 'success' : 'danger';
+            const statusIcon = api.status === 'operational' ? '✅' : 
+                             api.status === 'issue' ? '⚠️' : '❌';
+            const statusClass = api.status === 'operational' ? 'success' : 
+                              api.status === 'issue' ? 'warning' : 'danger';
+            const statusTextMap = {
+                'operational': 'ทำงานปกติ',
+                'issue': 'มีปัญหาบางส่วน',
+                'outage': 'มีปัญหา',
+                'checking': 'กำลังตรวจสอบ'
+            };
             
             return `
                 <div class="api-item">
@@ -230,7 +278,7 @@ const HealthStatusView = {
                         ${api.name}
                     </div>
                     <div class="api-status">
-                        ${statusIcon} ${api.status === 'ok' ? 'ทำงานปกติ' : 'มีปัญหา'}
+                        ${statusIcon} ${statusTextMap[api.status] || api.status}
                     </div>
                 </div>
             `;
@@ -241,33 +289,33 @@ const HealthStatusView = {
 
     renderRecentActivity(data) {
         const container = document.getElementById('recent-activity');
-        const { recentActivity } = data;
-
-        if (!recentActivity) {
-            container.innerHTML = '<p class="text-muted">ไม่มีข้อมูล</p>';
-            return;
-        }
-
+        
+        // Health API doesn't provide activity data, show placeholder
         container.innerHTML = `
             <div class="info-grid">
                 <div class="info-item">
-                    <div class="info-label">✅ Check-in</div>
-                    <div class="info-value">${recentActivity.checkIns || 0} ครั้ง</div>
+                    <div class="info-label">📊 System Status</div>
+                    <div class="info-value">${data.status.toUpperCase()}</div>
                 </div>
                 <div class="info-item">
-                    <div class="info-label">🏁 Check-out</div>
-                    <div class="info-value">${recentActivity.checkOuts || 0} ครั้ง</div>
+                    <div class="info-label">⚡ Response</div>
+                    <div class="info-value">${data.response_time || '-'}</div>
                 </div>
                 <div class="info-item">
-                    <div class="info-label">📅 ขอลางาน</div>
-                    <div class="info-value">${recentActivity.leaveRequests || 0} รายการ</div>
+                    <div class="info-label">🔌 Components</div>
+                    <div class="info-value">${Object.keys(data.components || {}).length}</div>
                 </div>
                 <div class="info-item">
-                    <div class="info-label">💰 เบิกเงิน</div>
-                    <div class="info-value">${recentActivity.advanceRequests || 0} รายการ</div>
+                    <div class="info-label">✅ Operational</div>
+                    <div class="info-value">${this.countOperational(data.components)}</div>
                 </div>
             </div>
         `;
+    },
+
+    countOperational(components) {
+        if (!components) return 0;
+        return Object.values(components).filter(c => c.status === 'operational').length;
     },
 
     formatUptime(seconds) {
