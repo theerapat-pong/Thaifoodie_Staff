@@ -59,20 +59,6 @@ const HomeView = {
                     </a>
                 </div>
                 
-                <!-- System Monitor Section (for all users) -->
-                <div class="menu-section-title">ติดตามระบบ</div>
-                <div class="menu-grid">
-                    <a href="#health-status" class="menu-item">
-                        <div class="menu-icon">🏥</div>
-                        <div class="menu-label">สถานะระบบ</div>
-                    </a>
-                    <a href="#system-logs" class="menu-item" id="menu-system-logs" style="display: none;">
-                        <div class="menu-icon">🔧</div>
-                        <div class="menu-label">System Logs</div>
-                        <span class="badge-dev">DEV</span>
-                    </a>
-                </div>
-                
                 <!-- Admin Section (hidden by default) -->
                 <div class="admin-section" id="admin-section" style="display: none;">
                     <div class="menu-section-title">สำหรับผู้ดูแลระบบ</div>
@@ -81,6 +67,15 @@ const HomeView = {
                             <div class="menu-icon">📋</div>
                             <div class="menu-label">จัดการคำขอ</div>
                             <span class="pending-badge" id="admin-pending-badge" style="display: none;">0</span>
+                        </a>
+                        <a href="#health-status" class="menu-item">
+                            <div class="menu-icon">🏥</div>
+                            <div class="menu-label">สถานะระบบ</div>
+                        </a>
+                        <a href="#system-logs" class="menu-item" id="menu-system-logs" style="display: none;">
+                            <div class="menu-icon">🔧</div>
+                            <div class="menu-label">System Logs</div>
+                            <span class="badge-dev">DEV</span>
                         </a>
                         <a href="#settings" class="menu-item">
                             <div class="menu-icon">⚙️</div>
@@ -177,16 +172,17 @@ const HomeView = {
             pendingBadge.style.display = 'none';
         }
 
-        // Show System Logs menu only for DEV role
-        if (isDevRole) {
-            const systemLogsMenu = document.getElementById('menu-system-logs');
-            if (systemLogsMenu) {
-                systemLogsMenu.style.display = 'block';
-            }
-        }
-
         if (isAdminRole) {
             document.getElementById('admin-section').style.display = 'block';
+            
+            // Show System Logs menu only for DEV role
+            if (isDevRole) {
+                const systemLogsMenu = document.getElementById('menu-system-logs');
+                if (systemLogsMenu) {
+                    systemLogsMenu.style.display = 'block';
+                }
+            }
+            
             this.loadAdminPendingCount();
         }
     },

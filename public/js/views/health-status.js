@@ -67,7 +67,55 @@ const HealthStatusView = {
 
     async init() {
         console.log('[HealthStatus] Loading health status...');
+        
+        // Check access permission - ADMIN or DEV only
+        const hasAccess = await this.checkAccess();
+        
+        if (!hasAccess) {
+            this.showAccessDenied();
+            return;
+        }
+        
         await this.loadHealthData();
+    },
+
+    async checkAccess() {
+        try {
+            // Get user profile to check role
+            const response = await UserAPI.getProfile();
+            if (response.success && response.data) {
+                const userRole = response.data.employee.role;
+                return ['ADMIN', 'DEV'].includes(userRole);
+            }
+            return false;
+        } catch (error) {
+            console.error('[HealthStatus] Access check error:', error);
+            return false;
+        }
+    },
+
+    showAccessDenied() {
+        const container = document.querySelector('.view-health-status');
+        if (container) {
+            container.innerHTML = `
+                <div class="view-header">
+                    <button class="btn-back" onclick="router.navigate('home')">
+                        <span class="back-icon">←</span>
+                    </button>
+                    <h1 class="view-title">🏥 สถานะระบบ</h1>
+                </div>
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="text-danger mb-2" style="font-size: 48px;">🚫</div>
+                        <h3>ไม่สามารถเข้าถึงได้</h3>
+                        <p class="text-muted">คุณไม่มีสิทธิ์เข้าถึงสถานะระบบ<br>เฉพาะผู้ดูแลระบบเท่านั้น</p>
+                        <button class="btn btn-primary mt-3" onclick="router.navigate('home')">
+                            กลับหน้าหลัก
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
     },
 
     async loadHealthData() {
